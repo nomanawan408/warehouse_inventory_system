@@ -18,3 +18,17 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
+
+
+
+
+
+use App\Http\Controllers\StockController;
+use App\Http\Controllers\ReportController;
+
+Route::resource('stock', StockController::class);
+Route::get('report', [ReportController::class, 'index'])->name('report.index');
+Route::get('report/create', [ReportController::class, 'create'])->name('report.create');
+Route::get('report/view/{id}', [ReportController::class, 'view'])->name('report.view');
+
