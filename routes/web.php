@@ -2,10 +2,19 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\StockController;
+use App\Http\Controllers\ReportController;
 
 Route::get('/', function () {
     return view('welcome');
 });
+
+
+Route::get('check', function () {
+    return view('index');
+});
+
+
 
 Route::get('/dashboard', function () {
     return view('dashboard');
@@ -24,8 +33,7 @@ require __DIR__.'/auth.php';
 
 
 
-use App\Http\Controllers\StockController;
-use App\Http\Controllers\ReportController;
+
 
 Route::resource('stock', StockController::class);
 Route::get('report', [ReportController::class, 'index'])->name('report.index');

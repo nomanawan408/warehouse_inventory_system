@@ -1,0 +1,46 @@
+:root {
+    --text-color: #56021f;
+    --body-color: #f4cce9;
+    --section-color: #7d1c4a;
+    --navigation-color: #d17d98;
+    --section: rgb(207, 198, 198);
+}
+
+body {
+    background-color: #e0e0e0;
+    font-family: Arial, sans-serif;
+}
+.navbar {
+    background-color: var(--section-color);
+}
+.navbar-brand {
+    color: white;
+    font-weight: bold;
+}
+.navbar-nav .nav-link {
+    color: white;
+    font-weight: bold;
+}
+.container-box {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+}
+.btn-green {
+    background-color: var(--section-color);
+    color: white;
+    font-weight: bold;
+}
+.btn-green:hover {
+    background-color: #218838;
+}
+.total-box {
+    font-size: 30px;
+    font-weight: bold;
+}
+.search-bar {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
