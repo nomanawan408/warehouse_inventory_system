@@ -14,7 +14,14 @@ Route::get('check', function () {
     return view('index');
 });
 
+Route::get('/stocks', function () {
+    return view('dashboard.stock.index');
+});
 
+
+Route::get('/reports', function () {
+    return view('dashboard.reports.index');
+});
 
 Route::get('/dashboard', function () {
     return view('dashboard');
