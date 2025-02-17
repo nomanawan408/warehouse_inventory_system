@@ -14,13 +14,29 @@ Route::get('check', function () {
     return view('index');
 });
 
-Route::get('/stocks', function () {
-    return view('dashboard.stock.index');
+Route::get('/products', function () {
+    return view('dashboard.products.index');
 });
 
 
 Route::get('/reports', function () {
     return view('dashboard.reports.index');
+});
+
+Route::get('/sales', function () {
+    return view('dashboard.sales.index');
+});
+
+Route::get('/customers', function () {
+    return view('dashboard.customers.index');
+});
+
+Route::get('/welcome', function () {
+    return view('welcome');
+});
+
+Route::get('/companies', function () {
+    return view('dashboard.companies.index');
 });
 
 Route::get('/dashboard', function () {

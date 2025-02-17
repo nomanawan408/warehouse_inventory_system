@@ -1,5 +1,6 @@
+
 @extends('layouts.app')
 
 @section('content')
-    THIS IS STOCK INDEX PAGE
+    <h2>THIS IS THE SALES PAE</h2>
 @endsection
