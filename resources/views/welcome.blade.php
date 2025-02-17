@@ -38,6 +38,7 @@
             <div class="col-md-4">
                 <div class="container-box">
                     <h5><strong>STOCK</strong></h5>
+                    <a href="{{ route('products.create') }}" class="btn btn-green w-100 mb-2">ADD PRODUCTS</a>
                     <button class="btn btn-green w-100 mb-2">REPORTS</button>
                     <h6>Select Customer</h6>
                     <!-- <div class="border p-2 mb-3">TOTAL: 3,000</div>

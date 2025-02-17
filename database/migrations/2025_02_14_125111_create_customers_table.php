@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('phone_no');
             $table->text('address');
             $table->string('cnic')->unique();
-            $table->enum('type', ['vandor', 'customer'])->default('retail');
+            $table->enum('type', ['vandor', 'customer'])->default('customer');
             $table->timestamps();
         });
     }
