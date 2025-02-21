@@ -5,7 +5,17 @@
         <div class="row">
             <div class="col-md-12">
                 <div class="container-box">
-                    <input type="text" class="search-bar" placeholder="Search Item here....">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4>Items Stock</h4>
+                        <a href="{{ route('products.create') }}" class="btn btn-primary">Add Item</a>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="col-md-12">
+                            <input type="text" class="form-control search-bar me-3" placeholder="Search Item here...">
+                        </div>
+                        
+                    </div>
+                    
                     <table class="table table-bordered mt-3">
                         <thead class="table-light">
                             <tr>

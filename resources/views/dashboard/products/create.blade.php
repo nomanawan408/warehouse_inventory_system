@@ -1,63 +1,96 @@
 @extends('layouts.app')
 
 @section('content')
-    <form method="POST" action="{{ route('products.store') }}" class="space-y-6">
-        @csrf
+    <div class="container my-4">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="container-box">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4>Add Item</h4>
+                        <a href="{{ route('products.index') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </a>
+                    </div>
+                  
+            <form method="POST" action="{{ route('products.store') }}">
+                @csrf
+                <div class="row">
+                    <!-- Name -->
+                    <div class="col-md-6 mb-3">
+                        <div class="form-group">
+                            <label for="name">Name</label>
+                            <input type="text" class="form-control @error('name') is-invalid @enderror" id="name"
+                                name="name" required autofocus value="{{ old('name') }}">
+                            @error('name')
+                                <span class="invalid-feedback">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
 
-        <!-- Name -->
-        <div>
-            <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
-            <input id="name" name="name" type="text" required autofocus class="mt-1 block w-full">
-            @error('name')
-                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-            @enderror
-        </div>
+                    <!-- Purchase Price -->
+                    <div class="col-md-6 mb-3">
+                        <div class="form-group">
+                            <label for="purchase_price">Purchase Price</label>
+                            <input type="number" step="0.01"
+                                class="form-control @error('purchase_price') is-invalid @enderror" id="purchase_price"
+                                name="purchase_price" required value="{{ old('purchase_price') }}">
+                            @error('purchase_price')
+                                <span class="invalid-feedback">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
 
-        <!-- Purchase Price -->
-        <div>
-            <label for="purchase_price" class="block text-sm font-medium text-gray-700">Purchase Price</label>
-            <input id="purchase_price" name="purchase_price" type="number" step="0.01" required
-                class="mt-1 block w-full">
-            @error('purchase_price')
-                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-            @enderror
-        </div>
+                    <!-- Sale Price -->
+                    <div class="col-md-6 mb-3">
+                        <div class="form-group">
+                            <label for="sale_price">Sale Price</label>
+                            <input type="number" step="0.01"
+                                class="form-control @error('sale_price') is-invalid @enderror" id="sale_price"
+                                name="sale_price" required value="{{ old('sale_price') }}">
+                            @error('sale_price')
+                                <span class="invalid-feedback">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
 
-        <!-- Sale Price -->
-        <div>
-            <label for="sale_price" class="block text-sm font-medium text-gray-700">Sale Price</label>
-            <input id="sale_price" name="sale_price" type="number" step="0.01" required class="mt-1 block w-full">
-            @error('sale_price')
-                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-            @enderror
-        </div>
+                    <!-- Quantity -->
+                    <div class="col-md-6 mb-3">
+                        <div class="form-group">
+                            <label for="quantity">Quantity</label>
+                            <input type="number" class="form-control @error('quantity') is-invalid @enderror"
+                                id="quantity" name="quantity" required value="{{ old('quantity') }}">
+                            @error('quantity')
+                                <span class="invalid-feedback">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
 
-        <!-- Quantity -->
-        <div>
-            <label for="quantity" class="block text-sm font-medium text-gray-700">Quantity</label>
-            <input id="quantity" name="quantity" type="number" required class="mt-1 block w-full">
-            @error('quantity')
-                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-            @enderror
-        </div>
+                    <!-- Status -->
+                    <div class="col-md-6 mb-3">
+                        <div class="form-group">
+                            <label for="status">Status</label>
+                            <select class="form-control @error('status') is-invalid @enderror" id="status" name="status"
+                                required>
+                                <option value="1" {{ old('status') == '1' ? 'selected' : '' }}>Active</option>
+                                <option value="0" {{ old('status') == '0' ? 'selected' : '' }}>Inactive</option>
+                            </select>
+                            @error('status')
+                                <span class="invalid-feedback">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
 
-        <!-- Status -->
-        <div>
-            <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
-            <select id="status" name="status" required class="mt-1 block w-full">
-                <option value="1">Active</option>
-                <option value="0">Inactive</option>
-            </select>
-            @error('status')
-                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-            @enderror
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">Save Product</button>
+                        <a href="{{ route('products.index') }}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </div>
+            </form>
         </div>
-
-        <!-- Submit Button -->
-        <div>
-            <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md">
-                Save
-            </button>
-        </div>
-    </form>
+    </div>
+    </div>
+    </div>
+    </div>
 @endsection

@@ -1,25 +1,44 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 :root {
     --text-color: #56021f;
     --body-color: #f4cce9;
     --section-color: #7d1c4a;
-    --navigation-color: #d17d98;
+    --navigation-color: #000000;
     --section: rgb(207, 198, 198);
 }
-
 body {
-    background-color: #e0e0e0;
-    font-family: Arial, sans-serif;
+    background-color:#f6f6f6;
+    font-family: 'Poppins', sans-serif;
 }
 .navbar {
     background-color: var(--section-color);
 }
+.btn-primary {
+    background-color: var(--section-color);
+    border-color: var(--section-color);
+    color: white;
+}
+.btn-primary:hover {
+    background-color: #5a1435;
+    border-color: #5a1435;
+}
+.btn-secondary {
+    background-color: var(--navigation-color);
+    border-color: var(--navigation-color);
+    color: white;
+}
+.btn-secondary:hover {
+    background-color: #591334;
+    border-color: #591334;
+}
 .navbar-brand {
     color: white;
-    font-weight: bold;
 }
 .navbar-nav .nav-link {
     color: white;
-    font-weight: bold;
+}
+.navbar-nav .nav-link:hover {
+    color: #e6e6e6;
 }
 .container-box {
     background: white;
@@ -29,14 +48,12 @@ body {
 .btn-green {
     background-color: var(--section-color);
     color: white;
-    font-weight: bold;
 }
 .btn-green:hover {
     background-color: #218838;
 }
 .total-box {
     font-size: 30px;
-    font-weight: bold;
 }
 .search-bar {
     width: 100%;

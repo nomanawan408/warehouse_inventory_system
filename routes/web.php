@@ -6,6 +6,8 @@ use App\Http\Controllers\StockController;
 use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\SalesController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\AccountController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -26,6 +28,17 @@ Route::get('/sales', [SalesController::class, 'index'])->name('sales.index');
 Route::get('/sales/create', [SalesController::class, 'create'])->name('sales.create');
 Route::post('/sales', [SalesController::class, 'store'])->name('sales.store');
 
+// Customers Routes
+Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
+Route::get('/customers/create', [CustomerController::class, 'create'])->name('customers.create');
+Route::post('/customers', [CustomerController::class, 'store'])->name('customers.store');
+Route::get('/customers/{id}/edit', [CustomerController::class, 'edit'])->name('customers.edit');
+Route::put('/customers/{id}', [CustomerController::class, 'update'])->name('customers.update');
+Route::delete('/customers/{id}', [CustomerController::class, 'destroy'])->name('customers.destroy');
+
+// Accounts Routes
+Route::get('/accounts', [AccountController::class, 'index'])->name('accounts.index');
+Route::get('/accounts/show', [AccountController::class, 'index'])->name('accounts.show');
 
 
 
@@ -37,10 +50,6 @@ Route::get('check', function () {
 
 Route::get('/reports', function () {
     return view('dashboard.reports.index');
-});
-
-Route::get('/customers', function () {
-    return view('dashboard.customers.index');
 });
 
 Route::get('/welcome', function () {
