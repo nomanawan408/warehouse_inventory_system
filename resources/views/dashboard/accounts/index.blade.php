@@ -35,7 +35,8 @@
                                         <td>{{ $account->updated_at->format('d M Y') }}</td>
                                         <td>
                                             <div class="d-flex">
-                                                <a href="{{ route('accounts.show', $account->id) }}" class="btn btn-primary  btn-sm">View</a>
+                                                <a href="{{ route('accounts.show', $account->id) }}" class="btn btn-primary  btn-sm">View</a> | 
+                                                <a href="{{ route('accounts.show', $account->id) }}" class="btn btn-primary  btn-sm">Add Payments</a>
                                             </div>
                                         </td>
                                     </tr>

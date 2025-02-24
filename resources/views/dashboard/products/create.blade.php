@@ -64,7 +64,29 @@
                             @enderror
                         </div>
                     </div>
+                      <!-- Quantity -->
+                      <div class="col-md-6 mb-3">
+                        <div class="form-group">
+                            <label for="quantity">Company</label>
+                            <input type="number" class="form-control @error('quantity') is-invalid @enderror"
+                                id="quantity" name="quantity" required value="{{ old('quantity') }}">
+                            @error('quantity')
+                                <span class="invalid-feedback">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
 
+                    <!-- Quantity -->
+                    <div class="col-md-6 mb-3">
+                        <div class="form-group">
+                            <label for="quantity">Date</label>
+                            <input type="date" class="form-control @error('quantity') is-invalid @enderror"
+                                id="quantity" name="quantity" required value="{{ old('quantity') }}">
+                            @error('quantity')
+                                <span class="invalid-feedback">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
                     <!-- Status -->
                     <div class="col-md-6 mb-3">
                         <div class="form-group">
