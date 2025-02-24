@@ -11,25 +11,25 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('products', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->decimal('purchase_price', 10, 2);
-            $table->decimal('sale_price', 10, 2);
-            $table->integer('quantity');
-            $table->boolean('status');
-            $table->timestamps();
-        });
-
         // Schema::create('products', function (Blueprint $table) {
         //     $table->id();
         //     $table->string('name');
         //     $table->decimal('purchase_price', 10, 2);
         //     $table->decimal('sale_price', 10, 2);
-        //     $table->integer('stock_quantity');  // Renamed from 'quantity'
-        //     $table->boolean('status')->default(true);
+        //     $table->integer('quantity');
+        //     $table->boolean('status');
         //     $table->timestamps();
         // });
+
+        Schema::create('products', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->decimal('purchase_price', 10, 2);
+            $table->decimal('sale_price', 10, 2);
+            $table->integer('stock_quantity');  // Renamed from 'quantity'
+            $table->boolean('status')->default(true);
+            $table->timestamps();
+        });
     }
 
     /**
