@@ -64,7 +64,7 @@
                             @enderror
                         </div>
                     </div>
-                      <!-- Quantity -->
+                      {{-- <!-- Quantity -->
                       <div class="col-md-6 mb-3">
                         <div class="form-group">
                             <label for="quantity">Company</label>
@@ -80,13 +80,13 @@
                     <div class="col-md-6 mb-3">
                         <div class="form-group">
                             <label for="quantity">Date</label>
-                            <input type="date" class="form-control @error('quantity') is-invalid @enderror"
+                            <input type="dateti" class="form-control @error('quantity') is-invalid @enderror"
                                 id="quantity" name="quantity" required value="{{ old('quantity') }}">
                             @error('quantity')
                                 <span class="invalid-feedback">{{ $message }}</span>
                             @enderror
                         </div>
-                    </div>
+                    </div> --}}
                     <!-- Status -->
                     <div class="col-md-6 mb-3">
                         <div class="form-group">
