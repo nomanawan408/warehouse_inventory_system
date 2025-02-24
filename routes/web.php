@@ -8,9 +8,12 @@ use App\Http\Controllers\SalesController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\AccountController;
+use App\Models\Product;
+use Illuminate\Http\Request;
+
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('sales.index');
 });
 
 // Products Routes
@@ -25,6 +28,9 @@ Route::post('/products', [ProductsController::class, 'store'])->name('products.s
 
 // Sales Routes
 Route::get('/sales', [SalesController::class, 'index'])->name('sales.index');
+Route::post('/sales/store', [SaleController::class, 'store'])->name('sales.store');
+
+
 Route::get('/sales/create', [SalesController::class, 'create'])->name('sales.create');
 Route::post('/sales', [SalesController::class, 'store'])->name('sales.store');
 
@@ -42,27 +48,20 @@ Route::get('/accounts/show', [AccountController::class, 'index'])->name('account
 
 
 
-Route::get('check', function () {
-    return view('index');
+Route::get('/search', function (Request $request) {
+    $query = $request->get('query');
+
+    if ($query) {
+        $products = Product::where('name', 'LIKE', "%{$query}%")
+            ->limit(10)
+            ->get(['id', 'name', 'sale_price','quantity']); // Ensure price is included
+    } else {
+        $products = [];
+    }
+
+    return response()->json($products);
 });
 
-
-
-Route::get('/reports', function () {
-    return view('dashboard.reports.index');
-});
-
-Route::get('/welcome', function () {
-    return view('welcome');
-});
-
-Route::get('/companies', function () {
-    return view('dashboard.companies.index');
-});
-
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

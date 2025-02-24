@@ -16,8 +16,8 @@ return new class extends Migration
             $table->string('name');
             $table->decimal('purchase_price', 10, 2);
             $table->decimal('sale_price', 10, 2);
-            $table->integer('quantity');
-            $table->boolean('status');
+            $table->integer('stock_quantity');  // Renamed from 'quantity'
+            $table->boolean('status')->default(true);
             $table->timestamps();
         });
     }

@@ -11,7 +11,7 @@
                     <a class="nav-link px-3 rounded-pill mx-1 transition" href="{{url('/welcome')}}">Home</a>
                 </li> --}}
                 <li class="nav-item">
-                    <a class="nav-link px-3 rounded-pill mx-1 transition btn btn-secondary text-white" href="{{url('/welcome')}}">Create New Sale</a>
+                    <a class="nav-link px-3 rounded-pill mx-1 transition btn btn-secondary text-white" href="{{url('/')}}">Create New Sale</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link px-3 rounded-pill mx-1 transition" href="{{url('/products')}}">Stocks</a>

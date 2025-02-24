@@ -16,9 +16,9 @@ return new class extends Migration
             $table->string('name');
             $table->string('business_name')->nullable();
             $table->string('phone_no');
-            $table->text('address');
-            $table->string('cnic')->unique();
-            $table->enum('type', ['vandor', 'customer'])->default('customer');
+            $table->text('address')->nullable();
+            $table->string('cnic')->unique()->nullable();
+            $table->enum('type', ['vendor', 'customer'])->default('customer');
             $table->timestamps();
         });
     }
