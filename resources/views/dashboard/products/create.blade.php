@@ -64,13 +64,19 @@
                             @enderror
                         </div>
                     </div>
-                      {{-- <!-- Quantity -->
-                      <div class="col-md-6 mb-3">
+                      
+                    <div class="col-md-6 mb-3">
                         <div class="form-group">
-                            <label for="quantity">Company</label>
-                            <input type="number" class="form-control @error('quantity') is-invalid @enderror"
-                                id="quantity" name="quantity" required value="{{ old('quantity') }}">
-                            @error('quantity')
+                            <label for="company_id">Select Company</label>
+                            <select class="form-control @error('company_id') is-invalid @enderror" id="company_id" name="company_id" required>
+                                <option value="" disabled selected>Select a company</option>
+                                @foreach ($companies as $company)
+                                    <option value="{{ $company->id }}" {{ old('company_id') == $company->id ? 'selected' : '' }}>
+                                        {{ $company->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('company_id')
                                 <span class="invalid-feedback">{{ $message }}</span>
                             @enderror
                         </div>
@@ -79,16 +85,16 @@
                     <!-- Quantity -->
                     <div class="col-md-6 mb-3">
                         <div class="form-group">
-                            <label for="quantity">Date</label>
-                            <input type="dateti" class="form-control @error('quantity') is-invalid @enderror"
-                                id="quantity" name="quantity" required value="{{ old('quantity') }}">
-                            @error('quantity')
+                            <label for="created_at">Date</label>
+                            <input type="datetime-local" class="form-control @error('created_at') is-invalid @enderror"
+                                id="created_at" name="created_at" required value="{{ old('created_at', now()->format('Y-m-d\TH:i')) }}">
+                            @error('created_at')
                                 <span class="invalid-feedback">{{ $message }}</span>
                             @enderror
                         </div>
-                    </div> --}}
+                    </div>  
                     <!-- Status -->
-                    <div class="col-md-6 mb-3">
+                    {{-- <div class="col-md-6 mb-3">
                         <div class="form-group">
                             <label for="status">Status</label>
                             <select class="form-control @error('status') is-invalid @enderror" id="status" name="status"
@@ -100,7 +106,7 @@
                                 <span class="invalid-feedback">{{ $message }}</span>
                             @enderror
                         </div>
-                    </div>
+                    </div> --}}
                 </div>
 
                 <div class="row mt-3">

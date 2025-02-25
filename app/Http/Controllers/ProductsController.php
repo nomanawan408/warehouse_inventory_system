@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Product;
+use App\Models\Company;
 
 class ProductsController extends Controller
 {
@@ -14,7 +15,8 @@ class ProductsController extends Controller
     }
 
     public function create(){
-        return view('dashboard.products.create');
+        $companies = Company::all();
+        return view('dashboard.products.create', compact('companies'));
     }
 
     public function store(Request $request)
@@ -24,7 +26,7 @@ class ProductsController extends Controller
             'purchase_price' => 'required|numeric|min:0',
             'sale_price' => 'required|numeric|min:0',
             'quantity' => 'required|integer|min:0',
-            'status' => 'required|boolean',
+            // 'status' => 'required|boolean',
         ]);
 
         $product = new Product();
@@ -32,7 +34,9 @@ class ProductsController extends Controller
         $product->purchase_price = $validatedData['purchase_price'];
         $product->sale_price = $validatedData['sale_price'];
         $product->quantity = $validatedData['quantity'];
-        $product->status = $validatedData['status'];
+        $product->company_id = $request->company_id;
+        
+            $product->status = 1;
         $product->save();
 
         return redirect()->route('products.index')->with('success', 'Product created successfully');

@@ -12,6 +12,7 @@ class Product extends Model
         'purchase_price',
         'sale_price',
         'quantity',
+        'company_id',
         'status',
     ];
 }

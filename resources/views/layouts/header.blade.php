@@ -21,6 +21,9 @@
                     <a class="nav-link px-3 rounded-pill mx-1 transition" href="{{url('/customers')}}">Customers</a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link px-3 rounded-pill mx-1 transition" href="{{url('/companies')}}">Companies</a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link px-3 rounded-pill mx-1 transition" href="{{url('/accounts')}}">Accounts</a>
                 </li>
                 <li class="nav-item">

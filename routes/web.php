@@ -8,6 +8,7 @@ use App\Http\Controllers\SalesController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\CompanyController;
 use App\Models\Product;
 use Illuminate\Http\Request;
 
@@ -41,6 +42,15 @@ Route::post('/customers', [CustomerController::class, 'store'])->name('customers
 Route::get('/customers/{id}/edit', [CustomerController::class, 'edit'])->name('customers.edit');
 Route::put('/customers/{id}', [CustomerController::class, 'update'])->name('customers.update');
 Route::delete('/customers/{id}', [CustomerController::class, 'destroy'])->name('customers.destroy');
+
+// Company Routes
+Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');
+Route::get('/companies/create', [CompanyController::class, 'create'])->name('companies.create');
+Route::post('/companies', [CompanyController::class, 'store'])->name('companies.store');
+Route::get('/companies/{id}/edit', [CompanyController::class, 'edit'])->name('companies.edit');
+Route::put('/companies/{id}', [CompanyController::class, 'update'])->name('companies.update');
+Route::delete('/companies/{id}', [CompanyController::class, 'destroy'])->name('companies.destroy');
+
 
 // Accounts Routes
 Route::get('/accounts', [AccountController::class, 'index'])->name('accounts.index');
