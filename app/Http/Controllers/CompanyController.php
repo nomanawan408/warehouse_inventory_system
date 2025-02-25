@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Company;
 use App\Models\Account;
+use App\Models\CompanyAccount;
 
 class CompanyController extends Controller
 {
@@ -37,15 +38,15 @@ class CompanyController extends Controller
         $company->cnic = $request->cnic;
         $company->save();
 
-        $account = new Account();
-        $account->company_id = $company->id;
-        $account->debit = 0;
-        $account->credit = 0;
-        $account->balance = 0;
-        $account->pending = 0;
-        $account->paid = 0;
-        $account->details = null;
-        $account->save();
+        // $account = new CompanyAccount();
+        // $account->company_id = $company->id;
+        // $account->debit = 0;
+        // $account->credit = 0;
+        // $account->balance = 0;
+        // $account->pending = 0;
+        // $account->paid = 0;
+        // $account->details = null;
+        // $account->save();
 
 
         return redirect()->route('companies.index')->with('success', 'Customer created successfully');
