@@ -13,14 +13,14 @@ return new class extends Migration
     {
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('sale_id')->nullable()->constrained()->onDelete('cascade');  // Link to sale (optional)
-            $table->foreignId('account_id')->constrained()->onDelete('cascade');  // Link to customer account
-            $table->decimal('amount_paid', 10, 2);  // Payment amount
-            $table->enum('payment_method', ['cash', 'online']);  // Only manual payments
-            $table->text('description')->nullable();  // Notes (e.g., "Paid by hand")
+            $table->foreignId('customer_id')->constrained('customers')->onDelete('cascade');
+            $table->foreignId('sale_id')->nullable()->constrained('sales')->onDelete('cascade');
+            $table->decimal('amount_paid', 10, 2);
+            $table->enum('payment_type', ['Cash', 'Card', 'Bank Transfer']);
+            $table->string('description')->nullable();
+            $table->dateTime('payment_date')->useCurrent();
             $table->timestamps();
         });
-        
     }
 
     /**

@@ -24,10 +24,6 @@ class CompanyController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'business_name' => 'required|string|max:255',
-            'phone_no' => 'required|string|max:20',
-            'address' => 'required|string|max:255',
-            'cnic' => 'required|string|max:15|unique:companies',
         ]);
 
         $company = new Company();
@@ -38,15 +34,13 @@ class CompanyController extends Controller
         $company->cnic = $request->cnic;
         $company->save();
 
-        // $account = new CompanyAccount();
-        // $account->company_id = $company->id;
-        // $account->debit = 0;
-        // $account->credit = 0;
-        // $account->balance = 0;
-        // $account->pending = 0;
-        // $account->paid = 0;
-        // $account->details = null;
-        // $account->save();
+        $account = new CompanyAccount();
+        $account->company_id = $company->id;
+        $account->total_purchases = 0;
+        $account->total_paid = 0;
+        $account->pending_balance = 0;
+        $account->last_payment_date = null;
+        $account->save();
 
 
         return redirect()->route('companies.index')->with('success', 'Customer created successfully');

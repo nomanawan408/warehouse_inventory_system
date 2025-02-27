@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Customer;
-use App\Models\Account;
+use App\Models\CustomerAccount;
 
 class CustomerController extends Controller
 {
@@ -22,10 +22,6 @@ class CustomerController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'business_name' => 'required|string|max:255',
-            'phone_no' => 'required|string|max:20',
-            'address' => 'required|string|max:255',
-            'cnic' => 'required|string|max:15|unique:customers',
         ]);
 
         $customer = new Customer();
@@ -36,10 +32,12 @@ class CustomerController extends Controller
         $customer->cnic = $request->cnic;
         $customer->save();
 
-        $account = new Account();
+        $account = new CustomerAccount();
         $account->customer_id = $customer->id;
-        $account->paid_amount = 0;
-        $account->pedding_amount = 0;
+        $account->total_purchases = 0;
+        $account->total_paid = 0;
+        $account->pending_balance = 0;
+        $account->last_payment_date = null;
         $account->save();
 
 
@@ -79,4 +77,20 @@ class CustomerController extends Controller
         $customer->delete();
         return redirect()->route('customers.index')->with('success', 'Customer deleted successfully');
     }
+
+    public function search(Request $request)
+    {
+        $query = $request->input('search');
+        if(empty($query))
+            $customers = Customer::all();
+        else
+            $customers = Customer::where('name', 'LIKE', "%{$query}%")
+                ->orWhere('business_name', 'LIKE', "%{$query}%")
+                ->orWhere('phone_no', 'LIKE', "%{$query}%")
+                ->orWhere('cnic', 'LIKE', "%{$query}%")
+                ->get();
+
+        return view('dashboard.partials.table', compact('customers'))->render();
+    }
+
 }

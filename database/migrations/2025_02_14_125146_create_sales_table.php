@@ -13,15 +13,15 @@ return new class extends Migration
     {
         Schema::create('sales', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('product_id')->constrained();
-            $table->foreignId('customer_id')->constrained();
-            $table->string('sale_type');
-            $table->decimal('amount', 10, 2);
-            $table->integer('quantity');
-            $table->string('status');
+            $table->foreignId('customer_id')->nullable()->constrained()->onDelete('set null'); // Customer Reference
+            $table->decimal('total_amount', 10, 2);
+            $table->decimal('discount', 10, 2)->default(0);
+            $table->decimal('tax', 10, 2)->default(0);
+            $table->decimal('net_total', 10, 2); // Total after discount & tax
+            $table->decimal('amount_paid', 10, 2);
+            $table->decimal('pending_amount', 10, 2);
             $table->timestamps();
         });
-
 
         
     }

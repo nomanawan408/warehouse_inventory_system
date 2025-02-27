@@ -9,6 +9,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\CompanyController;
+
 use App\Models\Product;
 use Illuminate\Http\Request;
 
@@ -29,7 +30,7 @@ Route::post('/products', [ProductsController::class, 'store'])->name('products.s
 
 // Sales Routes
 Route::get('/sales', [SalesController::class, 'index'])->name('sales.index');
-Route::post('/sales/store', [SaleController::class, 'store'])->name('sales.store');
+Route::post('/sales', [SalesController::class, 'store'])->name('sales.store');
 
 
 Route::get('/sales/create', [SalesController::class, 'create'])->name('sales.create');
@@ -42,6 +43,12 @@ Route::post('/customers', [CustomerController::class, 'store'])->name('customers
 Route::get('/customers/{id}/edit', [CustomerController::class, 'edit'])->name('customers.edit');
 Route::put('/customers/{id}', [CustomerController::class, 'update'])->name('customers.update');
 Route::delete('/customers/{id}', [CustomerController::class, 'destroy'])->name('customers.destroy');
+Route::get('/customers/search', [CustomerController::class, 'search'])->name('customers.search');
+
+//Add payments to customer accounts 
+Route::get('/accounts/{id}/payments/add', [AccountController::class, 'addPayment'])->name('accounts.payments.add');
+Route::post('/accounts/{id}/payments', [AccountController::class, 'storePayment'])->name('accounts.payments.store');
+
 
 // Company Routes
 Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');
@@ -56,6 +63,9 @@ Route::delete('/companies/{id}', [CompanyController::class, 'destroy'])->name('c
 Route::get('/accounts', [AccountController::class, 'index'])->name('accounts.index');
 Route::get('/accounts/show', [AccountController::class, 'index'])->name('accounts.show');
 
+// Account Transections
+Route::get('/accounts/{id}/transactions', [AccountController::class, 'transactions'])->name('accounts.transactions');
+
 
 
 Route::get('/search', function (Request $request) {
@@ -63,13 +73,25 @@ Route::get('/search', function (Request $request) {
 
     if ($query) {
         $products = Product::where('name', 'LIKE', "%{$query}%")
+            ->with('company:id,name') // Load the related company data
             ->limit(10)
-            ->get(['id', 'name', 'sale_price','quantity']); // Ensure price is included
+            ->get(['id', 'name', 'sale_price', 'quantity', 'company_id']);
     } else {
         $products = [];
     }
 
-    return response()->json($products);
+    // Map products to include company_name in the response
+    $results = collect($products)->map(function ($product) {
+        return [
+            'id' => $product->id,
+            'name' => $product->name,
+            'sale_price' => $product->sale_price,
+            'quantity' => $product->quantity,
+            'company_name' => $product->company->name ?? 'N/A',
+        ];
+    });
+
+    return response()->json($results);
 });
 
 

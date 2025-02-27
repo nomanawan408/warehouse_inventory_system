@@ -3,13 +3,18 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Account;
+use App\Models\CompanyAccount;
 
 class Company extends Model
 {
     //
     public function account()
     {
-        return $this->hasOne(Account::class);
+        return $this->hasOne(CompanyAccount::class);
+    }
+
+    public function products()
+    {
+        return $this->hasMany(Product::class);
     }
 }

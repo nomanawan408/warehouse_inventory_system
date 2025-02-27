@@ -15,4 +15,9 @@ class Product extends Model
         'company_id',
         'status',
     ];
+
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
+    }
 }
