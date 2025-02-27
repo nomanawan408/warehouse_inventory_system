@@ -33,6 +33,7 @@ Route::delete('/products/{id}', [ProductsController::class, 'destroy'])->name('p
 
 // Sales Routes
 Route::get('/sales', [SalesController::class, 'index'])->name('sales.index');
+Route::get('/sales/create', [SalesController::class, 'create'])->name('sales.create');
 Route::post('/sales', [SalesController::class, 'store'])->name('sales.store');
 
 

@@ -18,4 +18,8 @@ class SaleItem extends Model
         'profit_margin',
         'total'
     ];
+
+    public function product(){
+        return $this->belongsTo(Product::class);
+    }
 }

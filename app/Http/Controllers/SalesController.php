@@ -17,7 +17,15 @@ use DB;
 class SalesController extends Controller
 {
     //  
-    public function index(){
+   
+    
+    public function index()
+    {
+        $sales = Sale::with('customer', 'saleItems.product')->get();
+        return view('dashboard.sales.index', compact('sales'));
+    }
+
+    public function create(){
         $sales = Cart::all();
         $customers = Customer::all();
 

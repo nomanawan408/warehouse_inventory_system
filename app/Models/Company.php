@@ -13,6 +13,11 @@ class Company extends Model
         return $this->hasOne(CompanyAccount::class);
     }
 
+    public function sales()
+    {
+        return $this->hasMany(Sale::class);
+    }
+
     public function products()
     {
         return $this->hasMany(Product::class);

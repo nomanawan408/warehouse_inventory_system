@@ -3,51 +3,75 @@
 @section('content')
     <div class="container my-4">
         <div class="row">
-            <div class="col-md-8">
+            <div class="col-md-12">
                 <div class="container-box">
-                    <input type="text" class="search-bar" placeholder="Search Item here....">
-                    <table class="table table-bordered mt-3">
-                        <thead class="table-light">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4>Stock List</h4>
+                        <a href="{{ route('sales.create') }}" class="btn btn-primary">Add Item</a>
+                    </div>
+                  
+                    
+                    <table id="saleTable" class="table table-bordered table-hover table-striped mt-3">
+                        <thead class="table-dark">
                             <tr>
-                                <th>ID</th>
-                                <th>Product</th>
-                                <th>Quantity</th>
-                                <th>Price</th>
-                                <th>User</th>
+                                <th>Customer Name</th>
+                                <th>Total Amount</th>
+                                <th>Discount</th>
+                                {{-- <th>Tax</th> --}}
+                                <th>Net Total</th>
+                                <th>Amount Paid</th>
+                                <th>Pending Amount</th>
+                                {{-- <th>Action</th> --}}
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($sales as $sale)
-                            <tr>
-                                <td>{{ $sale->id }}</td>
-                                <td>{{ $sale->product->name }}</td>
-                                <td>{{ $sale->quantity }}</td>
-                                <td>${{ number_format($sale->price, 2) }}</td>
-                                <td>{{ $sale->user->name }}</td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="6" class="text-center">No item here</td>
-                            </tr>
-                            @endforelse
+                            @foreach ($sales as $sale)
+                                <tr>
+                                    <td>{{ $sale->customer->name }}</td>
+                                    <td>{{ $sale->total_amount }}</td>
+                                    <td>{{ $sale->discount }}</td>
+                                    {{-- <td>{{ $sale->tax }}</td> --}}
+                                    <td>{{ $sale->net_total }}</td>
+                                    <td>{{ $sale->amount_paid }}</td>
+                                    <td>{{ $sale->pending_amount }}</td>
+                                    {{-- <td>
+                                        <a href="{{ route('sales.edit', $sale->id) }}" class="btn btn-primary btn-sm">Edit</a>
+                                        <form action="{{ route('sales.destroy', $sale->id) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this sale?')">Delete</button>
+                                        </form>
+                                    </td> --}}
+                                </tr>
+                            @endforeach
                         </tbody>
                     </table>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="container-box">
-                    <h5><strong>STOCK</strong></h5>
-                    <a href="{{ route('products.create') }}" class="btn btn-green w-100 mb-2">ADD PRODUCTS</a>
-                    <button class="btn btn-green w-100 mb-2">REPORTS</button>
-                    <h6>Select Customer</h6>
-                    <!-- <div class="border p-2 mb-3">TOTAL: 3,000</div>
-                    <div class="border p-2 mb-3">Discounts: 50</div>
-                    <div class="border p-2 total-box">Net Total: 5,550</div>
-                    <button class="btn btn-green w-100 mb-2">RESET</button> -->
-                    <button class="btn btn-green w-100">PAY NOW</button>
-                </div>
-            </div>
         </div>
     </div>
+<!-- DataTables CSS and JS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.0.1/css/buttons.dataTables.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.0.1/js/dataTables.buttons.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.0.1/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.0.1/js/buttons.print.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#saleTable').DataTable({
+            dom: 'Bfrtip',
+            buttons: [
+                'copy', 'csv', 'pdf','print', 
+                {
+                    extend: 'pdfHtml5',
+                    orientation: 'landscape'
+                }
+            ]
+        });
+    });
+</script>
 
 @endsection

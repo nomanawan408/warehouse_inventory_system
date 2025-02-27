@@ -66,7 +66,11 @@
         $('#productTable').DataTable({
             dom: 'Bfrtip',
             buttons: [
-                'copy', 'csv', 'excel', 'pdf', 'print'
+                'copy', 'csv', 'pdf','print', 
+                {
+                    extend: 'pdfHtml5',
+                    orientation: 'landscape'
+                }
             ]
         });
     });
