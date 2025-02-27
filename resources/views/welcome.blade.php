@@ -37,7 +37,8 @@
                         <!-- API results will be rendered here -->
                     </div>
                     <div id="response" class="my-3"></div>
-                    <input type="text" id="search" placeholder="Search for products..." class="search-bar form-control">
+                    <input type="text" id="search" placeholder="Search for products..."
+                        class="search-bar form-control">
                     <div style="width: 100%;">
                         <ul id="search-results"></ul>
                     </div>
@@ -134,7 +135,8 @@
                         success: function(data) {
                             let results = "";
                             data.forEach(product => {
-                                results += `
+                                if (product.quantity > 0) {
+                                    results += `
                         <li class="list-group-item d-flex justify-content-between align-items-center" 
                             data-id="${product.id}" 
                             data-name="${product.name}" 
@@ -145,6 +147,19 @@
                             <span class="badge bg-primary rounded-pill">${product.quantity} in stock</span>
                             <span class="product-price">Rs. ${product.sale_price}</span>
                         </li>`;
+                                } else {
+                                    results += `
+                        <li class="list-group-item d-flex justify-content-between align-items-center" 
+                            data-id="${product.id}" 
+                            data-name="${product.name}" 
+                            data-sale_price="${product.sale_price}"
+                            data-company_name="${product.company_name}">
+                            
+                            <span class="product-name">${product.name}</span>
+                            <span class="badge bg-danger rounded-pill">Out of stock</span>
+                            <span class="product-price">Rs. ${product.sale_price}</span>
+                        </li>`;
+                                }
                             });
                             $('#search-results').html(results);
                         }
@@ -208,22 +223,25 @@
                 cartTable.html('');
 
                 cart.forEach(item => {
+                    let itemTotal = (item.qty * (item.price - item.discount)).toFixed(
+                        2); // Apply discount per item
                     let row = `
-            <tr data-id="${item.id}">
-                <td>${item.name}</td>
-                <td>${item.companyName}</td>
-                <td><input type="number" class="qty form-control" value="${item.qty}" min="1" style="width: 60px;"></td>
-                <td class="price">${item.price}</td>
-                <td><input type="number" class="discount form-control" value="${item.discount}" min="0" style="width: 100%;"></td>
-                <td class="total">${(item.qty * item.price - item.discount).toFixed(2)}</td>
-                <td><button class="btn btn-danger btn-sm remove">X</button></td>
-            </tr>`;
+                        <tr data-id="${item.id}">
+                            <td>${item.name}</td>
+                            <td>${item.companyName}</td>
+                            <td><input type="number" class="qty form-control" value="${item.qty}" min="1" style="width: 60px;"></td>
+                            <td class="price">${item.price}</td>
+                            <td><input type="number" class="discount form-control" value="${item.discount}" min="0" style="width: 100%;"></td>
+                            <td class="total">${itemTotal}</td>
+                            <td><button class="btn btn-danger btn-sm remove">X</button></td>
+                        </tr>`;
                     cartTable.append(row);
                 });
 
                 updateDiscount();
                 updateGrandTotal();
             }
+
 
             // Function to update row totals when quantity or discount changes
             $(document).on('input', '.qty, .discount', function() {
@@ -245,11 +263,12 @@
 
                 if (product) {
                     product.qty = qty;
-                    product.discount = discount;
+                    product.discount = discount; // Discount applied per item
                 }
 
                 localStorage.setItem('cart', JSON.stringify(cart));
             }
+
 
             // Function to remove an item from cart
             $(document).on('click', '.remove', function() {
@@ -265,25 +284,40 @@
             function updateGrandTotal() {
                 let subTotal = 0;
                 let grandTotal = 0;
+                let totalDiscount = 0; // Initialize total discount variable
+
                 $('table tbody tr').each(function() {
-                    subTotal += parseFloat($(this).find('.price').text()) * parseInt($(this).find('.qty')
-                        .val());
-                    grandTotal += parseFloat($(this).find('.total').text());
+                    let qty = parseInt($(this).find('.qty').val());
+                    let price = parseFloat($(this).find('.price').text());
+                    let discountPerItem = parseFloat($(this).find('.discount').val());
+
+                    let itemTotal = qty * (price - discountPerItem); // Discount applied per item
+                    subTotal += qty * price;
+                    grandTotal += itemTotal;
+                    totalDiscount += qty * discountPerItem; // Sum up total discount
                 });
 
-                $('.sub-total').text(`Sub Total: ${subTotal.toFixed(2)}`);
-                $('.total-box').text(`Net Total: ${grandTotal.toFixed(2)}`);
+                $('.sub-total').text(`Sub Total: Rs. ${subTotal.toFixed(2)}`);
+                $('.total-box').text(`Net Total: Rs. ${grandTotal.toFixed(2)}`);
+                $('#discount').text(`Total Discount: Rs. ${totalDiscount.toFixed(2)}`); // Display total discount
             }
+
+
 
             // Function to calculate discount
             function updateDiscount() {
-                let discount = 0;
+                let totalDiscount = 0;
+
                 $('table tbody tr').each(function() {
-                    discount += parseFloat($(this).find('.discount').val());
+                    let qty = parseInt($(this).find('.qty').val());
+                    let discountPerItem = parseFloat($(this).find('.discount').val());
+
+                    totalDiscount += qty * discountPerItem; // Sum up total discount applied per item
                 });
 
-                $('#discount').text(discount.toFixed(2));
+                $('#discount').text(`Total Discount: Rs. ${totalDiscount.toFixed(2)}`);
             }
+
             // ////////////////////////////////////////////////////////////////////////////////////////
             $.ajaxSetup({
                 headers: {
@@ -313,33 +347,42 @@
 
                 let subTotal = 0;
                 let totalDiscount = 0;
+                let netTotal = 0;
+
+                // Adjust discount for each item
                 cart.forEach(item => {
-                    subTotal += item.qty * item.price;
-                    totalDiscount += parseFloat(item.discount || 0);
+                    let totalItemPrice = item.qty * item.price; // Total price before discount
+                    let totalItemDiscount = item.qty * parseFloat(item.discount ||
+                    0); // Discount per item * quantity
+
+                    subTotal += totalItemPrice; // Original Subtotal
+                    totalDiscount += totalItemDiscount; // Total discount on all items
+                    netTotal += (totalItemPrice -
+                    totalItemDiscount); // Net total after applying per-item discount
                 });
-                let netTotal = subTotal - totalDiscount;
+
                 $('#processing').html('<div class="alert alert-info">Processing payment...</div>');
 
                 $.ajax({
                     url: "/sales",
                     type: "POST",
                     data: {
-                        _token: $('meta[name="csrf-token"]').attr(
-                        'content'), // ✅ Add CSRF token here
+                        _token: $('meta[name="csrf-token"]').attr('content'), // ✅ Add CSRF token
                         customer_id: customerId,
                         cart: cart,
-                        sub_total: subTotal,
-                        discount: totalDiscount,
-                        net_total: netTotal,
-                        paid_amount: paidAmount
+                        sub_total: subTotal.toFixed(2), // Show proper decimal format
+                        discount: totalDiscount.toFixed(2), // Show total discount
+                        net_total: netTotal.toFixed(2), // Final total after discount
+                        paid_amount: paidAmount.toFixed(2) // Ensure proper number format
                     },
                     success: function(response) {
-                        // $('#response').html(response.data);
+                        ("Sale Successful:", response); // Log full response
                         alert(response.data);
-                        localStorage.removeItem('cart');
+                        localStorage.removeItem('cart'); // Clear cart after checkout
                         location.reload();
                     },
                     error: function(xhr) {
+                        alert("Error Response:", xhr); // Log full response
                         alert("Error: " + xhr.responseText);
                     }
                 });

@@ -58,17 +58,22 @@ class SalesController extends Controller
             'tax'            => 0, // Assuming tax is not provided in the request
             'net_total'      => $validated['sub_total'] - $validated['discount'] - 0, // Assuming tax is 0
             'amount_paid'    => $validated['paid_amount'],
-            'pending_amount' => $validated['net_total'] - $validated['paid_amount'],
+            'pending_amount' => max(0, $validated['net_total'] - $validated['paid_amount']),
             ]);
 
             // 2️⃣ Process Sale Items and Deduct Stock
             foreach ($validated['cart'] as $item) {
-            $product = Product::findOrFail($item['id']);
+            
+                $product = Product::find($item['id']);
 
-            // Deduct Stock
-            if ($product->quantity < $item['qty']) {
-                return response()->json(['error' => 'Not enough stock for ' . $product->name], 400);
-            }
+                if (!$product) {
+                    return response()->json(['error' => "Product ID {$item['id']} not found."], 400);
+                }
+                
+                if ($product->quantity < $item['qty']) {
+                    return response()->json(['error' => "Not enough stock for {$product->name}."], 400);
+                }
+                
             $product->decrement('quantity', $item['qty']);
 
             // Add Sale Item
@@ -80,6 +85,7 @@ class SalesController extends Controller
                 'discount'   => $item['discount'],
                 'total'      => ($item['qty'] * $item['price']) - $item['discount'],
             ]);
+
             }
 
             // 3️⃣ Update Customer Account
@@ -107,7 +113,7 @@ class SalesController extends Controller
             CustomerTransaction::create([
                 'customer_id'      => $validated['customer_id'],
                 'sale_id'          => $sale->id,
-                'transaction_type' => 'debit',
+                'transaction_type' => ($validated['paid_amount'] > 0) ? 'credit' : 'debit',
                 'amount'           => $validated['paid_amount'],
                 'payment_method'   => 'cash', // Assuming payment method is cash
                 'reference'        => 'Payment for sale #' . $sale->id,
@@ -119,7 +125,10 @@ class SalesController extends Controller
             return response()->json(['message' => 'Sale completed successfully!', 'sale_id' => $sale->id]);
         } catch (\Exception $e) {
             DB::rollback();
-            return response()->json(['error' => 'Sale processing failed', 'details' => $e->getMessage()], 500);
+            return response()->json([
+                'error' => 'Sale processing failed. Please check your data.',
+                'details' => $e->getMessage()
+            ], 500);
         }
     }
    
