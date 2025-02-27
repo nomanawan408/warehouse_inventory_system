@@ -44,7 +44,7 @@ class SalesController extends Controller
             'sub_total' => 'required|numeric|min:0',
             'discount' => 'required|numeric|min:0',
             'net_total' => 'required|numeric|min:0',
-            'paid_amount' => 'required|numeric|min:0',
+            'paid_amount' => 'nullable|numeric|min:0',
         ]);
 
         DB::beginTransaction();

@@ -101,7 +101,7 @@
                         </span>
                     </div>
                     <div class="border p-2 mb-3">Amount Paid:
-                        <input type="number" class="form-control" id="paid-amount" placeholder="Enter amount paid">
+                        <input type="number" value="0.00" class="form-control" id="paid-amount" placeholder="Enter amount paid">
                     </div>
                     <button class="btn btn-secondary w-100 mb-2" id="reset-cart">RESET</button>
                     <button class="btn btn-success w-100" id="checkout-btn">PAY NOW</button>
@@ -340,10 +340,11 @@
                 }
 
                 let paidAmount = parseFloat($('#paid-amount').val());
-                if (isNaN(paidAmount) || paidAmount <= 0) {
-                    alert("Please enter a valid paid amount");
-                    return;
-                }
+                // if (isNaN(paidAmount) || paidAmount <= 0) {
+                //     alert("Please enter a valid paid amount");
+                //     return;
+                // }
+                
 
                 let subTotal = 0;
                 let totalDiscount = 0;

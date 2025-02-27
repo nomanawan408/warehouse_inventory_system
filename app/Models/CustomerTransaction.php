@@ -23,9 +23,9 @@ class CustomerTransaction extends Model
 
     public function customer()
     {
-        return $this->belongsTo(CustomerAccount::class);
+        return $this->belongsTo(Customer::class);
     }
-
+    
     public function sale()
     {
         return $this->belongsTo(Sale::class);

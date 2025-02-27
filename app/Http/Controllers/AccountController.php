@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\CustomerAccount;
 use App\Models\Payment;
+use App\Models\CustomerTransaction;
 
 class AccountController extends Controller
 {
@@ -65,18 +66,54 @@ class AccountController extends Controller
         return redirect()->route('accounts.index')->with('success', 'Payment recorded successfully.');
     }
     
+    // public function transactions($id)
+    // {
+    //     // Find the customer account
+    //     $account = CustomerAccount::with('transactions')->findOrFail($id);
+
+    //     // Ensure transactions exist
+    //     if ($account->transactions->isEmpty()) {
+    //         return redirect()->back()->with('info', 'No transactions found for this account.');
+    //     }
+
+    //     // Pass data to the view
+    //     return view('dashboard.accounts.show', compact('account'));
+    // }
+
     public function transactions($id)
     {
-        // Find the customer account
-        $account = CustomerAccount::with('transactions')->findOrFail($id);
+        $account = CustomerAccount::findOrFail($id);
 
-        // Ensure transactions exist
-        if ($account->transactions->isEmpty()) {
-            return redirect()->back()->with('info', 'No transactions found for this account.');
+        // Fetch transactions related to the customer account, sorted by date
+        $transactions = CustomerTransaction::where('customer_id', $account->customer_id)
+                        ->orderBy('transaction_date', 'asc')
+                        ->get();
+
+        // Initialize balance
+        $balance = 0;
+        $formattedTransactions = [];
+
+        foreach ($transactions as $transaction) {
+            // Update balance dynamically
+            if ($transaction->debit) {
+                $balance += $transaction->debit;
+            }
+            if ($transaction->credit) {
+                $balance -= $transaction->credit;
+            }
+
+            // Prepare the transaction data to match the expected format
+            $formattedTransactions[] = [
+                'date' => \Carbon\Carbon::parse($transaction->transaction_date)->format('d/M/y'),
+                'debit' => $transaction->debit ? number_format($transaction->debit) : '',
+                'credit' => $transaction->credit ? number_format($transaction->credit) : '',
+                'balance' => number_format($balance), // Show updated balance
+                'detail' => $transaction->detail ?? '', // Include transaction detail
+            ];
         }
 
-        // Pass data to the view
-        return view('dashboard.accounts.show', compact('account'));
+        return view('dashboard.accounts.show', compact('account', 'formattedTransactions'));
     }
+
 
 }
