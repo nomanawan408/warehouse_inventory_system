@@ -36,6 +36,32 @@
                                     @endif
                                     <td>
                                         <a href="{{ route('products.edit', $product->id) }}" class="btn btn-primary btn-sm">Edit</a>
+                                        <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#updateStockModal{{ $product->id }}">
+                                            Update Stock
+                                        </button>
+
+                                        <!-- Update Stock Modal -->
+                                        <div class="modal fade" id="updateStockModal{{ $product->id }}" tabindex="-1" aria-labelledby="updateStockModalLabel{{ $product->id }}" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="updateStockModalLabel{{ $product->id }}">Update Stock for {{ $product->name }}</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <form action="{{ route('products.updateStock', $product->id) }}" method="POST">
+                                                            @csrf
+                                                            @method('PUT')
+                                                            <div class="mb-3">
+                                                                <label for="quantity{{ $product->id }}" class="form-label">Quantity</label>
+                                                                <input type="number" class="form-control" id="quantity{{ $product->id }}" name="quantity" value="{{ $product->quantity }}" required>
+                                                            </div>
+                                                            <button type="submit" class="btn btn-primary">Update Stock</button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                         <form action="{{ route('products.destroy', $product->id) }}" method="POST" class="d-inline">
                                             @csrf
                                             @method('DELETE')
