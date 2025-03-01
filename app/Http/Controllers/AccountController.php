@@ -115,5 +115,25 @@ class AccountController extends Controller
         return view('dashboard.accounts.show', compact('account', 'formattedTransactions'));
     }
 
+    public function storePendingAmount(Request $request, $id)
+    {
+        // Validate the request
+        $request->validate([
+            'pending_amount' => 'required|numeric|min:1',
+            'pending_date' => 'required|date',
+        ]);
+
+        // Find the customer's account
+        $account = CustomerAccount::findOrFail($id);
+
+        // Update the customer's account pending balance
+        $account->total_purchases += $request->pending_amount;
+        $account->pending_balance += $request->pending_amount;
+        $account->last_payment_date = $request->pending_date;
+
+        $account->save();
+
+        return redirect()->route('accounts.index')->with('success', 'Pending amount added successfully.');
+    }
 
 }

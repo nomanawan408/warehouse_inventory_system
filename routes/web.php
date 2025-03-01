@@ -53,6 +53,9 @@ Route::get('/customers/search', [CustomerController::class, 'search'])->name('cu
 Route::get('/accounts/{id}/payments/add', [AccountController::class, 'addPayment'])->name('accounts.payments.add');
 Route::post('/accounts/{id}/payments', [AccountController::class, 'storePayment'])->name('accounts.payments.store');
 
+// Add Pending Amount to Account
+Route::post('/accounts/{id}/pending', [AccountController::class, 'storePendingAmount'])->name('accounts.pending.store');
+
 
 // Company Routes
 Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');

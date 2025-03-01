@@ -35,7 +35,37 @@
                                             <div class="d-flex">
                                                 <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addPaymentModal{{ $account->id }}">
                                                     Add Payment
-                                                </button> &nbsp;
+                                                </button>
+                                                &nbsp;
+                                                <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#addPendingAmountModal{{ $account->id }}">
+                                                    Add Pending Amount
+                                                </button>
+                                                <!-- Modal -->
+                                                <div class="modal fade" id="addPendingAmountModal{{ $account->id }}" tabindex="-1" aria-labelledby="addPendingAmountModalLabel{{ $account->id }}" aria-hidden="true">
+                                                    <div class="modal-dialog">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title" id="addPendingAmountModalLabel{{ $account->id }}">Add Pending Amount</h5>
+                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <form action="{{ route('accounts.pending.store', $account->id) }}" method="POST">
+                                                                    @csrf
+                                                                    <div class="mb-3">
+                                                                        <label for="pendingAmount" class="form-label">Pending Amount</label>
+                                                                        <input type="number" class="form-control" id="pendingAmount" name="pending_amount" required>
+                                                                    </div>
+                                                                    <div class="mb-3">
+                                                                        <label for="pendingDate" class="form-label">Pending Date</label>
+                                                                        <input type="date" class="form-control" id="pendingDate" name="pending_date" value="{{ now()->format('Y-m-d') }}" required>
+                                                                    </div>
+                                                                    <button type="submit" class="btn btn-warning">Submit</button>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                &nbsp;
                                                 {{-- <a href="{{ route('accounts.show', $account->id) }}" class="btn btn-primary btn-sm">View</a>  --}}
                                                 <a href="{{ route('accounts.transactions', $account->id) }}" class="btn btn-secondary btn-sm">View</a>
                                                 <!-- Modal -->
