@@ -53,8 +53,12 @@
                                                             @csrf
                                                             @method('PUT')
                                                             <div class="mb-3">
-                                                                <label for="quantity{{ $product->id }}" class="form-label">Quantity</label>
-                                                                <input type="number" class="form-control" id="quantity{{ $product->id }}" name="quantity" value="{{ $product->quantity }}" required>
+                                                                <label for="oldQuantity{{ $product->id }}" class="form-label">Old Quantity</label>
+                                                                <input type="number" class="form-control" id="oldQuantity{{ $product->id }}" name="old_quantity" value="{{ $product->quantity }}" disabled>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label for="newQuantity{{ $product->id }}" class="form-label">New Quantity</label>
+                                                                <input type="number" class="form-control" id="newQuantity{{ $product->id }}" name="new_quantity" required>
                                                             </div>
                                                             <button type="submit" class="btn btn-primary">Update Stock</button>
                                                         </form>

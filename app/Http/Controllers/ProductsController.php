@@ -80,11 +80,11 @@ class ProductsController extends Controller
     public function updateStock(Request $request, $id)
     {
         $validatedData = $request->validate([
-            'quantity' => 'required|integer|min:0',
+            'new_quantity' => 'required|integer|min:0',
         ]);
 
         $product = Product::findOrFail($id);
-        $product->quantity = $validatedData['quantity'];
+        $product->quantity += $validatedData['new_quantity'];
         $product->save();
 
         return redirect()->route('products.index')->with('success', 'Product stock updated successfully');
