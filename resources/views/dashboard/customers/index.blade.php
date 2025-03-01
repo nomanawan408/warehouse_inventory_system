@@ -14,6 +14,7 @@
                         <thead class="table-dark">
                             <tr>
                                 <th>Customer Name</th>
+                                <th>Address</th>
                                 <th>Business Name</th>
                                 <th>Phone No</th>
                                 <th>CNIC</th>
@@ -24,6 +25,7 @@
                             @foreach($customers as $customer)
                                 <tr>
                                     <td>{{ $customer->name }}</td>
+                                    <td>{{ $customer->address }}</td>
                                     <td>{{ $customer->business_name }}</td>
                                     <td>{{ $customer->phone_no }}</td>
                                     <td>{{ $customer->cnic }}</td>
