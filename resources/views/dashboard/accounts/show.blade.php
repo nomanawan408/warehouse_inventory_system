@@ -17,16 +17,24 @@
                                 <th>Credit</th>
                                 <th>Balance</th>
                                 <th>Detail</th>
+                                <th>Reference</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($formattedTransactions as $transaction)
                                 <tr>
-                                    <td>{{ $transaction['date'] }}</td>
-                                    <td>{{ $transaction['debit'] }}</td>
-                                    <td>{{ $transaction['credit'] }}</td>
-                                    <td>{{ $transaction['balance'] }}</td>
-                                    <td>{{ $transaction['detail'] }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($transaction['transaction_date'])->format('d/M/y') }}</td>
+                                    @if ($transaction['transaction_type'] === 'debit')
+                                        <td>{{ number_format((float)$transaction['amount'], 2) }}</td>
+                                        <td></td>
+                                    @else
+                                        <td></td>
+                                        <td>{{ number_format((float)$transaction['amount'], 2) }}</td>
+                                    @endif
+                                   
+                                    <td>{{ number_format((float)$transaction['balance'], 2) }}</td>
+                                    <td>{{ $transaction['payment_method'] ?? '' }}</td>
+                                    <td>{{ $transaction['reference'] ?? '' }}</td>
                                 </tr>
                             @endforeach
                         </tbody>

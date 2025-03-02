@@ -27,11 +27,53 @@
                                     <td>
                                         <div class="d-flex">
                                             <a href="{{ route('companies.edit', $company->id) }}" class="btn btn-warning btn-sm me-2">Edit</a>
-                                            <form action="{{ route('companies.destroy', $company->id) }}" method="POST" class="d-inline">
+                                            <form action="{{ route('companies.destroy', $company->id) }}" method="POST" class="d-inline me-2">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')">Delete</button>
                                             </form>
+                                            <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#purchaseStockModal{{ $company->id }}">
+                                                Purchase Stock
+                                            </button>
+                                        </div>
+                                        <!-- Modal -->
+                                        <div class="modal fade" id="purchaseStockModal{{ $company->id }}" tabindex="-1" aria-labelledby="purchaseStockModalLabel{{ $company->id }}" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="purchaseStockModalLabel{{ $company->id }}">Purchase Stock</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <form action="{{ route('stocks.purchase', $company->id) }}" method="POST">
+                                                            @csrf
+                                                            <div class="mb-3">
+                                                                <label for="product" class="form-label">Product</label>
+                                                                <select class="form-control" id="product" name="product_id" required>
+                                                                    @foreach ($company->products as $product)
+                                                                        <option value="{{ $product->id }}">{{ $product->name }}</option>
+                                                                    @endforeach
+                                                                </select>
+                                                            </div>
+                                                            <div class="row">
+                                                                <div class="col-md-6 mb-3">
+                                                                    <label for="stockAmount" class="form-label">Stock Amount</label>
+                                                                    <input type="number" class="form-control" id="stockAmount" name="stock_amount" required>
+                                                                </div>
+                                                                <div class="col-md-6 mb-3">
+                                                                    <label for="purchaseDate" class="form-label">Purchase Date</label>
+                                                                    <input type="date" class="form-control" id="purchaseDate" name="purchase_date" value="{{ now()->format('Y-m-d') }}" required>
+                                                                </div>
+                                                            </div>
+                                                            {{-- <div class="mb-3">
+                                                                <label for="purchaseDate" class="form-label">Purchase Date</label>
+                                                                <input type="date" class="form-control" id="purchaseDate" name="purchase_date" value="{{ now()->format('Y-m-d') }}" required>
+                                                            </div> --}}
+                                                            <button type="submit" class="btn btn-warning">Submit</button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>

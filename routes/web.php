@@ -64,7 +64,8 @@ Route::post('/companies', [CompanyController::class, 'store'])->name('companies.
 Route::get('/companies/{id}/edit', [CompanyController::class, 'edit'])->name('companies.edit');
 Route::put('/companies/{id}', [CompanyController::class, 'update'])->name('companies.update');
 Route::delete('/companies/{id}', [CompanyController::class, 'destroy'])->name('companies.destroy');
-
+// Stock Purchase Routes
+Route::post('/stocks/{company}/purchase', [ProductsController::class, 'purchase'])->name('stocks.purchase');
 
 // Accounts Routes
 Route::get('/accounts', [AccountController::class, 'index'])->name('accounts.index');
