@@ -9,6 +9,35 @@
                         <h4>Account Transaction History</h4>
                         <a href="{{ route('accounts.index') }}" class="btn btn-secondary">Back to Accounts</a>
                     </div>
+                    
+                    <!-- Transaction Summary Cards -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">Total Debits/Purchases</h5>
+                                    <h3 class="card-text">Rs. {{ number_format(array_sum(array_column($formattedTransactions, 'debit')), 2) }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-success text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">Total Credits/Paid</h5>
+                                    <h3 class="card-text">Rs. {{ number_format(array_sum(array_column($formattedTransactions, 'credit')), 2) }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-danger text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">Pending Balance</h5>
+                                    <h3 class="card-text">Rs. {{ number_format(end($formattedTransactions)['balance'], 2) }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <table id="customerAccountTable" class="table table-bordered table-hover table-striped mt-3">
                         <thead class="table-dark">
                             <tr>

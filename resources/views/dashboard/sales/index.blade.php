@@ -23,6 +23,7 @@
                 <table id="saleTable" class="table table-bordered table-hover table-striped mt-3">
                         <thead class="table-dark">
                             <tr>
+                                <th>Invoice #</th>
                                 <th>Customer Name</th>
                                 <th>Total Amount</th>
                                 <th>Discount</th>
@@ -36,6 +37,7 @@
                         <tbody>
                             @foreach ($sales as $sale)
                                 <tr>
+                                    <td># {{ str_pad($sale->id, 3, '0', STR_PAD_LEFT) }}</td>
                                     <td>{{ $sale->customer->name }}</td>
                                     <td>{{ $sale->total_amount }}</td>
                                     <td>{{ $sale->discount }}</td>
@@ -50,7 +52,7 @@
                                     </td>
                                     <td>{{ $sale->updated_at }}</td>
                                     <td>
-                                        <button class="btn btn-info btn-sm view-invoice" data-sale-id="{{ $sale->id }}">View Invoice</button>
+                                        <button class="btn btn-success fo btn-sm view-invoice" data-sale-id="{{ $sale->id }}">Invoice</button>
                                     </td>
                                 </tr>
                             @endforeach

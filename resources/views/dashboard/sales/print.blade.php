@@ -81,6 +81,7 @@
                 <th>Quantity</th>
                 <th>Price</th>
                 <th>Discount</th>
+                <th>Total Discount</th>
                 <th>Total</th>
             </tr>
         </thead>
@@ -92,7 +93,8 @@
                 <td>{{ $item->quantity }}</td>
                 <td>{{ number_format($item->price, 2) }}</td>
                 <td>{{ number_format($item->discount, 2) }}</td>
-                <td>{{ number_format($item->total, 2) }}</td>
+                <td>{{ number_format($item->discount * $item->quantity, 2) }}</td>
+                <td>{{ number_format(($item->price - $item->discount) * $item->quantity, 2) }}</td>
             </tr>
             @endforeach
         </tbody>
@@ -105,7 +107,7 @@
                 <td>{{ number_format($sale->total_amount, 2) }}</td>
             </tr>
             <tr>
-                <td><strong>Discount:</strong></td>
+                <td><strong>Total Discount:</strong></td>
                 <td>{{ number_format($sale->discount, 2) }}</td>
             </tr>
             <tr>
