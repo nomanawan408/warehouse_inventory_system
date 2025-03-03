@@ -117,16 +117,30 @@ class SalesController extends Controller
                 'payment_date' => now()
             ]);
 
-            // 4️⃣ Record Customer Transaction
+            // 4️⃣ Record Customer Transactions
+            // Record the sale transaction (debit)
             CustomerTransaction::create([
                 'customer_id'      => $validated['customer_id'],
                 'sale_id'          => $sale->id,
-                'transaction_type' => ($validated['paid_amount'] > 0) ? 'credit' : 'debit',
-                'amount'           => $validated['paid_amount'],
-                'payment_method'   => 'cash', // Assuming payment method is cash
-                'reference'        => 'Payment for sale #' . $sale->id,
+                'transaction_type' => 'debit',
+                'amount'           => $validated['net_total'],
+                'payment_method'   => null,
+                'reference'        => 'Sale #' . $sale->id,
                 'transaction_date' => now(),
             ]);
+
+            // Record the payment transaction if payment was made (credit)
+            if ($validated['paid_amount'] > 0) {
+                CustomerTransaction::create([
+                    'customer_id'      => $validated['customer_id'],
+                    'sale_id'          => $sale->id,
+                    'transaction_type' => 'credit',
+                    'amount'           => $validated['paid_amount'],
+                    'payment_method'   => 'cash',
+                    'reference'        => 'Payment for sale #' . $sale->id,
+                    'transaction_date' => now(),
+                ]);
+            }
 
             DB::commit();
 

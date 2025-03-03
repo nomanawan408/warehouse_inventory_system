@@ -223,52 +223,94 @@
                 cartTable.html('');
 
                 cart.forEach(item => {
-                    let itemTotal = (item.qty * (item.price - item.discount)).toFixed(
-                        2); // Apply discount per item
+                    let itemSubtotal = parseFloat(item.qty) * parseFloat(item.price);
+                    let itemDiscount = parseFloat(item.discount || 0);
+                    let itemTotalDiscount = itemDiscount * parseFloat(item.qty);
+                    let itemTotal = itemSubtotal - itemTotalDiscount;
+                    
                     let row = `
                         <tr data-id="${item.id}">
                             <td>${item.name}</td>
                             <td>${item.companyName}</td>
                             <td><input type="number" class="qty form-control" value="${item.qty}" min="1" style="width: 60px;"></td>
                             <td class="price">${item.price}</td>
-                            <td><input type="number" class="discount form-control" value="${item.discount}" min="0" style="width: 100%;"></td>
-                            <td class="total">${itemTotal}</td>
+                            <td><input type="number" class="discount form-control" value="${itemDiscount}" min="0" style="width: 100%;"></td>
+                            <td class="total">${itemTotal.toFixed(2)}</td>
                             <td><button class="btn btn-danger btn-sm remove">X</button></td>
                         </tr>`;
                     cartTable.append(row);
                 });
 
-                updateDiscount();
-                updateGrandTotal();
+                updateTotals();
             }
 
+            function updateTotals() {
+                let subTotal = 0;
+                let totalDiscount = 0;
+                let netTotal = 0;
 
-            // Function to update row totals when quantity or discount changes
-            $(document).on('input', '.qty, .discount', function() {
-                let row = $(this).closest('tr');
-                let productId = row.data('id');
-                let qty = parseInt(row.find('.qty').val());
-                let discount = parseFloat(row.find('.discount').val());
+                let cart = JSON.parse(localStorage.getItem('cart')) || [];
+                
+                cart.forEach(item => {
+                    let itemSubtotal = item.qty * item.price;
+                    let itemDiscount = (item.discount || 0) * item.qty;
+                    
+                    subTotal += itemSubtotal;
+                    totalDiscount += itemDiscount;
+                });
 
-                updateSession(productId, qty, discount);
-                setTimeout(() => {
-                    renderCart();
-                }, 900);
-            });
+                netTotal = subTotal - totalDiscount;
 
-            // Function to update session storage when quantity/discount changes
+                $('#sub-total').text(`Rs. ${subTotal.toFixed(2)}`);
+                $('#discount').text(`Rs. ${totalDiscount.toFixed(2)}`);
+                $('#net-total').html(`<b>Rs. ${netTotal.toFixed(2)}</b>`);
+            }
+
             function updateSession(productId, qty, discount) {
                 let cart = JSON.parse(localStorage.getItem('cart')) || [];
                 let product = cart.find(item => item.id === productId);
 
                 if (product) {
-                    product.qty = qty;
-                    product.discount = discount; // Discount applied per item
+                    product.qty = parseInt(qty) || 1;
+                    product.discount = parseFloat(discount) || 0;
                 }
 
                 localStorage.setItem('cart', JSON.stringify(cart));
+                updateTotals();
             }
 
+
+            // Update quantity event listener
+            $(document).on('change', '.qty', function() {
+                let row = $(this).closest('tr');
+                let productId = row.data('id');
+                let qty = parseInt($(this).val()) || 1;
+                let price = parseFloat(row.find('.price').text());
+                let discount = parseFloat(row.find('.discount').val()) || 0;
+                
+                let itemSubtotal = qty * price;
+                let itemTotalDiscount = discount * qty;
+                let itemTotal = itemSubtotal - itemTotalDiscount;
+                
+                row.find('.total').text(itemTotal.toFixed(2));
+                updateSession(productId, qty, discount);
+            });
+
+            // Update discount event listener
+            $(document).on('change', '.discount', function() {
+                let row = $(this).closest('tr');
+                let productId = row.data('id');
+                let qty = parseInt(row.find('.qty').val()) || 1;
+                let price = parseFloat(row.find('.price').text());
+                let discount = parseFloat($(this).val()) || 0;
+                
+                let itemSubtotal = qty * price;
+                let itemTotalDiscount = discount * qty;
+                let itemTotal = itemSubtotal - itemTotalDiscount;
+                
+                row.find('.total').text(itemTotal.toFixed(2));
+                updateSession(productId, qty, discount);
+            });
 
             // Function to remove an item from cart
             $(document).on('click', '.remove', function() {
@@ -340,18 +382,18 @@
                     return;
                 }
 
-                let paidAmount = parseFloat($('#paid-amount').val());
+                let paidAmount = parseFloat($('#paid-amount').val()) || 0;
                 let subTotal = 0;
                 let totalDiscount = 0;
                 let netTotal = 0;
 
                 cart.forEach(item => {
-                    let totalItemPrice = item.qty * item.price;
-                    let totalItemDiscount = item.qty * parseFloat(item.discount || 0);
-
-                    subTotal += totalItemPrice;
-                    totalDiscount += totalItemDiscount;
-                    netTotal += (totalItemPrice - totalItemDiscount);
+                    let itemSubtotal = item.qty * item.price;
+                    let itemDiscount = item.qty * (item.discount || 0);
+                    
+                    subTotal += itemSubtotal;
+                    totalDiscount += itemDiscount;
+                    netTotal += (itemSubtotal - itemDiscount);
                 });
 
                 $('#processing').html('<div class="alert alert-info">Processing payment...</div>');

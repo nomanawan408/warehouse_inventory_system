@@ -6,7 +6,8 @@
             <div class="col-md-12">
                 <div class="container-box">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h4>Accounts List</h4>
+                        <h4>Account Transaction History</h4>
+                        <a href="{{ route('accounts.index') }}" class="btn btn-secondary">Back to Accounts</a>
                     </div>
                     <table id="customerAccountTable" class="table table-bordered table-hover table-striped mt-3">
                         <thead class="table-dark">

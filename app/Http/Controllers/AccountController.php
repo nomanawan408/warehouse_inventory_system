@@ -96,22 +96,29 @@ class AccountController extends Controller
         foreach ($transactions as $transaction) {
             // Update balance dynamically
             if ($transaction->transaction_type == 'debit') {
-                $balance += $transaction->amount;
+                $balance += $transaction->amount; // Increase balance for purchases
                 $debit = $transaction->amount;
-                $credit = null;
+                $credit = 0.00;
+                $detail = 'Purchase';
             } else {
-                $balance -= $transaction->amount;
-                $debit = null;
+                $balance -= $transaction->amount; // Decrease balance for payments
+                $debit = 0.00;
                 $credit = $transaction->amount;
+                $detail = 'Payment';
             }
     
-            // Prepare the transaction data to match the expected format
+            // Add additional transaction details
+            if ($transaction->sale_id) {
+                $detail .= ' - Sale #' . $transaction->sale_id;
+            }
+    
+            // Prepare the transaction data with improved formatting
             $formattedTransactions[] = [
-                'transaction_date' => \Carbon\Carbon::parse($transaction->transaction_date)->format('d/M/y'),
+                'transaction_date' => \Carbon\Carbon::parse($transaction->transaction_date)->format('d M Y'),
                 'debit' => $debit,
                 'credit' => $credit,
                 'balance' => $balance,
-                'detail' => $transaction->payment_method ?? '',
+                'detail' => $detail,
             ];
         }
     
