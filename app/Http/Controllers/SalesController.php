@@ -16,9 +16,17 @@ use DB;
 
 class SalesController extends Controller
 {
-    //  
-   
-    
+    public function print($id)
+    {
+        $sale = Sale::with(['customer', 'saleItems.product'])->findOrFail($id);
+        return view('dashboard.sales.print', compact('sale'));
+    }
+    public function show($id)
+    {
+        $sale = Sale::with(['customer', 'saleItems.product'])->findOrFail($id);
+        return view('dashboard.sales.invoice', compact('sale'));
+    }
+
     public function index()
     {
         $sales = Sale::with('customer', 'saleItems.product')->get();
@@ -122,7 +130,12 @@ class SalesController extends Controller
 
             DB::commit();
 
-            return response()->json(['message' => 'Sale completed successfully!', 'sale_id' => $sale->id]);
+            return response()->json([
+                'message' => 'Sale completed successfully!',
+                'sale_id' => $sale->id,
+                'print_url' => route('sales.print', $sale->id),
+                'invoice_url' => route('sales.show', $sale->id)
+            ]);
         } catch (\Exception $e) {
             DB::rollback();
             return response()->json([

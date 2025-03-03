@@ -1,13 +1,12 @@
 @extends('layouts.app')
 
-@section('content')
+@section('content') 
     <div class="container my-4">
         <div class="row">
             <div class="col-md-12">
                 <div class="container-box">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h4>Accounts List</h4>
-                        {{-- <a href="{{ route('customers.create') }}" class="btn btn-primary">Create Customer</a> --}}
                     </div>
                     <table id="customerAccountTable" class="table table-bordered table-hover table-striped mt-3">
                         <thead class="table-dark">
@@ -17,24 +16,16 @@
                                 <th>Credit</th>
                                 <th>Balance</th>
                                 <th>Detail</th>
-                                <th>Reference</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($formattedTransactions as $transaction)
                                 <tr>
-                                    <td>{{ \Carbon\Carbon::parse($transaction['transaction_date'])->format('d/M/y') }}</td>
-                                    @if ($transaction['transaction_type'] === 'debit')
-                                        <td>{{ number_format((float)$transaction['amount'], 2) }}</td>
-                                        <td></td>
-                                    @else
-                                        <td></td>
-                                        <td>{{ number_format((float)$transaction['amount'], 2) }}</td>
-                                    @endif
-                                   
+                                    <td>{{ $transaction['transaction_date'] }}</td>
+                                    <td>{{ $transaction['debit'] ? number_format((float)$transaction['debit'], 2) : '' }}</td>
+                                    <td>{{ $transaction['credit'] ? number_format((float)$transaction['credit'], 2) : '' }}</td>
                                     <td>{{ number_format((float)$transaction['balance'], 2) }}</td>
-                                    <td>{{ $transaction['payment_method'] ?? '' }}</td>
-                                    <td>{{ $transaction['reference'] ?? '' }}</td>
+                                    <td>{{ $transaction['detail'] }}</td>
                                 </tr>
                             @endforeach
                         </tbody>

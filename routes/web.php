@@ -35,7 +35,8 @@ Route::put('/products/{id}/update-stock', [ProductsController::class, 'updateSto
 Route::get('/sales', [SalesController::class, 'index'])->name('sales.index');
 Route::get('/sales/create', [SalesController::class, 'create'])->name('sales.create');
 Route::post('/sales', [SalesController::class, 'store'])->name('sales.store');
-
+Route::get('/sales/{id}', [SalesController::class, 'show'])->name('sales.show');
+Route::get('/sales/{id}/print', [SalesController::class, 'print'])->name('sales.print');
 
 Route::get('/sales/create', [SalesController::class, 'create'])->name('sales.create');
 Route::post('/sales', [SalesController::class, 'store'])->name('sales.store');

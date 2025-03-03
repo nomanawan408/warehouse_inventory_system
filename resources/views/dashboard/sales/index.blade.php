@@ -26,12 +26,11 @@
                                 <th>Customer Name</th>
                                 <th>Total Amount</th>
                                 <th>Discount</th>
-                                {{-- <th>Tax</th> --}}
                                 <th>Net Total</th>
                                 <th>Amount Paid</th>
                                 <th>Pending Amount</th>
                                 <th>Last Update</th>
-                                {{-- <th>Action</th> --}}
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -40,7 +39,6 @@
                                     <td>{{ $sale->customer->name }}</td>
                                     <td>{{ $sale->total_amount }}</td>
                                     <td>{{ $sale->discount }}</td>
-                                    {{-- <td>{{ $sale->tax }}</td> --}}
                                     <td>{{ $sale->net_total }}</td>
                                     <td>{{ $sale->amount_paid }}</td>
                                     <td>
@@ -51,14 +49,9 @@
                                         @endif  
                                     </td>
                                     <td>{{ $sale->updated_at }}</td>
-                                    {{-- <td>
-                                        <a href="{{ route('sales.edit', $sale->id) }}" class="btn btn-primary btn-sm">Edit</a>
-                                        <form action="{{ route('sales.destroy', $sale->id) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this sale?')">Delete</button>
-                                        </form>
-                                    </td> --}}
+                                    <td>
+                                        <button class="btn btn-info btn-sm view-invoice" data-sale-id="{{ $sale->id }}">View Invoice</button>
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -66,6 +59,9 @@
                 </div>
             </div>
         </div>
+
+    @include('dashboard.sales.invoice-modal')
+
 <script src="https://cdn.datatables.net/buttons/2.0.1/js/buttons.print.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
 <!-- DataTables CSS and JS -->
@@ -89,6 +85,12 @@
                     orientation: 'landscape'
                 }
             ]
+        });
+
+        // Invoice view handler - opens in new tab
+        $('.view-invoice').on('click', function() {
+            var saleId = $(this).data('sale-id');
+            window.open(`/sales/${saleId}/print`, '_blank');
         });
 
         // Custom filter for daily, weekly, and monthly records

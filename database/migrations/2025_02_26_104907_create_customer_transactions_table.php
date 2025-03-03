@@ -13,13 +13,13 @@ return new class extends Migration
     {
         Schema::create('customer_transactions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('customer_id')->constrained()->onDelete('cascade');
-            $table->foreignId('sale_id')->nullable()->constrained('sales')->onDelete('set null');
-            $table->enum('transaction_type', ['credit', 'debit']);
-            $table->decimal('amount', 10, 2);
+            $table->unsignedBigInteger('customer_id');
+            $table->enum('transaction_type', ['debit', 'credit']);
+            $table->decimal('amount', 15, 2);
+            $table->date('transaction_date');
+            $table->string('detail')->nullable();
             $table->string('payment_method')->nullable();
-            $table->string('reference')->nullable(); // Invoice number or bank reference
-            $table->timestamp('transaction_date')->default(now());
+            $table->string('reference')->nullable();
             $table->timestamps();
         });
     }

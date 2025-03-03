@@ -5,7 +5,7 @@
 
     <style>
         #search-results {
-            position: absolute;
+            position: absolute; 
             background: #ffffff;
             width: 700px;
             list-style-type: none;
@@ -326,6 +326,7 @@
                 }
             });
 
+            // Checkout process
             $('#checkout-btn').on('click', function() {
                 let customerId = $('#customer').val();
                 if (customerId === "Choose Customer") {
@@ -340,26 +341,17 @@
                 }
 
                 let paidAmount = parseFloat($('#paid-amount').val());
-                // if (isNaN(paidAmount) || paidAmount <= 0) {
-                //     alert("Please enter a valid paid amount");
-                //     return;
-                // }
-                
-
                 let subTotal = 0;
                 let totalDiscount = 0;
                 let netTotal = 0;
 
-                // Adjust discount for each item
                 cart.forEach(item => {
-                    let totalItemPrice = item.qty * item.price; // Total price before discount
-                    let totalItemDiscount = item.qty * parseFloat(item.discount ||
-                    0); // Discount per item * quantity
+                    let totalItemPrice = item.qty * item.price;
+                    let totalItemDiscount = item.qty * parseFloat(item.discount || 0);
 
-                    subTotal += totalItemPrice; // Original Subtotal
-                    totalDiscount += totalItemDiscount; // Total discount on all items
-                    netTotal += (totalItemPrice -
-                    totalItemDiscount); // Net total after applying per-item discount
+                    subTotal += totalItemPrice;
+                    totalDiscount += totalItemDiscount;
+                    netTotal += (totalItemPrice - totalItemDiscount);
                 });
 
                 $('#processing').html('<div class="alert alert-info">Processing payment...</div>');
@@ -368,23 +360,34 @@
                     url: "/sales",
                     type: "POST",
                     data: {
-                        _token: $('meta[name="csrf-token"]').attr('content'), // ✅ Add CSRF token
+                        _token: $('meta[name="csrf-token"]').attr('content'),
                         customer_id: customerId,
                         cart: cart,
-                        sub_total: subTotal.toFixed(2), // Show proper decimal format
-                        discount: totalDiscount.toFixed(2), // Show total discount
-                        net_total: netTotal.toFixed(2), // Final total after discount
-                        paid_amount: paidAmount.toFixed(2) // Ensure proper number format
+                        sub_total: subTotal.toFixed(2),
+                        discount: totalDiscount.toFixed(2),
+                        net_total: netTotal.toFixed(2),
+                        paid_amount: paidAmount.toFixed(2)
                     },
                     success: function(response) {
-                        ("Sale Successful:", response); // Log full response
-                        alert(response.data);
-                        localStorage.removeItem('cart'); // Clear cart after checkout
-                        location.reload();
+                        localStorage.removeItem('cart');
+                        $('#processing').html(`
+                            <div class="alert alert-success">
+                                <h4>Sale Completed Successfully!</h4>
+                                <div class="mt-3">
+                                    <a href="${response.print_url}" target="_blank" class="btn btn-primary me-2">
+                                        <i class="fas fa-print"></i> Print Invoice
+                                    </a>
+                                    <a href="${response.invoice_url}" target="_blank" class="btn btn-secondary">
+                                        <i class="fas fa-download"></i> Download PDF
+                                    </a>
+                                </div>
+                            </div>
+                        `);
+                        loadCartFromSession();
                     },
                     error: function(xhr) {
-                        alert("Error Response:", xhr); // Log full response
-                        alert("Error: " + xhr.responseText);
+                        $('#processing').html('<div class="alert alert-danger">Error processing sale</div>');
+                        console.error("Error:", xhr.responseText);
                     }
                 });
             });

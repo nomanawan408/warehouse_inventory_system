@@ -83,37 +83,38 @@ class AccountController extends Controller
     public function transactions($id)
     {
         $account = CustomerAccount::findOrFail($id);
-
+    
         // Fetch transactions related to the customer account, sorted by date
         $transactions = CustomerTransaction::where('customer_id', $account->customer_id)
                         ->orderBy('transaction_date', 'asc')
                         ->get();
-
+    
         // Initialize balance
         $balance = 0;
         $formattedTransactions = [];
-
+    
         foreach ($transactions as $transaction) {
             // Update balance dynamically
             if ($transaction->transaction_type == 'debit') {
                 $balance += $transaction->amount;
-            }
-            if ($transaction->transaction_type == 'credit') {
+                $debit = $transaction->amount;
+                $credit = null;
+            } else {
                 $balance -= $transaction->amount;
+                $debit = null;
+                $credit = $transaction->amount;
             }
-
+    
             // Prepare the transaction data to match the expected format
             $formattedTransactions[] = [
-                'date' => \Carbon\Carbon::parse($transaction->transaction_date)->format('d/M/y'),
-                'transaction_type' => ucfirst($transaction->transaction_type), // Use transaction_type from schema
-                'amount' => number_format($transaction->amount, 2), // Use amount from schema
-                'balance' => number_format($balance, 2), // Show updated balance
-                'payment_method' => $transaction->payment_method ?? '', // Include payment method
-                'reference' => $transaction->reference ?? '', // Include reference
-                'transaction_date' => $transaction->transaction_date,
+                'transaction_date' => \Carbon\Carbon::parse($transaction->transaction_date)->format('d/M/y'),
+                'debit' => $debit,
+                'credit' => $credit,
+                'balance' => $balance,
+                'detail' => $transaction->payment_method ?? '',
             ];
         }
-
+    
         return view('dashboard.accounts.show', compact('account', 'formattedTransactions'));
     }
 
