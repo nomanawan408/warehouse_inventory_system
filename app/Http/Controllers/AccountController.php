@@ -89,30 +89,34 @@ class AccountController extends Controller
                         ->orderBy('transaction_date', 'asc')
                         ->get();
     
-        // Initialize balance
+        // Initialize variables for totals
         $balance = 0;
+        $totalPurchases = 0;
+        $totalPaid = 0;
         $formattedTransactions = [];
     
         foreach ($transactions as $transaction) {
-            // Update balance dynamically
+            // Update totals based on transaction type
             if ($transaction->transaction_type == 'debit') {
-                $balance += $transaction->amount; // Increase balance for purchases
+                $totalPurchases += $transaction->amount;
+                $balance += $transaction->amount;
                 $debit = $transaction->amount;
-                $credit = 0.00;
+                $credit = null;
                 $detail = 'Purchase';
             } else {
-                $balance -= $transaction->amount; // Decrease balance for payments
-                $debit = 0.00;
+                $totalPaid += $transaction->amount;
+                $balance -= $transaction->amount;
+                $debit = null;
                 $credit = $transaction->amount;
                 $detail = 'Payment';
             }
     
-            // Add additional transaction details
+            // Add sale reference if available
             if ($transaction->sale_id) {
                 $detail .= ' - Sale #' . $transaction->sale_id;
             }
     
-            // Prepare the transaction data with improved formatting
+            // Format the transaction data
             $formattedTransactions[] = [
                 'transaction_date' => \Carbon\Carbon::parse($transaction->transaction_date)->format('Y-m-d H:i:s'),
                 'debit' => $debit,
@@ -121,6 +125,12 @@ class AccountController extends Controller
                 'detail' => $detail,
             ];
         }
+    
+        // Update account totals
+        $account->total_purchases = $totalPurchases;
+        $account->total_paid = $totalPaid;
+        $account->pending_balance = $balance;
+        $account->save();
     
         return view('dashboard.accounts.show', compact('account', 'formattedTransactions'));
     }

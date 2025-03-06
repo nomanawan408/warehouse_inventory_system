@@ -17,28 +17,32 @@ class CustomerAccountSeeder extends Seeder
      */
     public function run(): void
     {
-        $customers = Customer::all();
+        // $customers = Customer::all();
 
-        foreach ($customers as $customer) {
-            CustomerAccount::create([
-                'customer_id'      => $customer->id,
-                'total_purchases'  => 0,
-                'total_paid'       => 0,
-                'pending_balance'  => 0,
-                'last_payment_date'=> null,
-            ]);
-        }
+        // foreach ($customers as $customer) {
+        //     if (!CustomerAccount::where('customer_id', $customer->id)->exists()) {
+        //         CustomerAccount::create([
+        //             'customer_id'      => $customer->id,
+        //             'total_purchases'  => 0,
+        //             'total_paid'       => 0,
+        //             'pending_balance'  => 0,
+        //             'last_payment_date'=> null,
+        //         ]);
+        //     }
+        // }
 
         $companies = Company::all();
 
         foreach ($companies as $company) {
-            CompanyAccount::create([
-                'company_id'      => $company->id,
-                'total_purchases'  => 0,
-                'total_paid'       => 0,
-                'pending_balance'  => 0,
-                'last_payment_date'=> null,
-            ]);
+            if (!CompanyAccount::where('company_id', $company->id)->exists()) {
+                CompanyAccount::create([
+                    'company_id'      => $company->id,
+                    'total_purchases'  => 0,
+                    'total_paid'       => 0,
+                    'pending_balance'  => 0,
+                    'last_payment_date'=> null,
+                ]);
+            }
         }
     }
 }
