@@ -125,13 +125,7 @@ class AccountController extends Controller
                 'detail' => $detail,
             ];
         }
-    
-        // Update account totals
-        $account->total_purchases = $totalPurchases;
-        $account->total_paid = $totalPaid;
-        $account->pending_balance = $balance;
-        $account->save();
-    
+
         return view('dashboard.accounts.show', compact('account', 'formattedTransactions'));
     }
 
