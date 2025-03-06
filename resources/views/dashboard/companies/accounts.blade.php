@@ -13,7 +13,7 @@
                         <thead class="table-dark">
                             <tr>
                                 <th>Company Name</th>
-                                <th>Business Name</th>
+                                <th>Address</th>
                                 <th>Total Purchases</th>
                                 <th>Total Paid</th>
                                 <th>Pending Balance</th>
@@ -24,12 +24,12 @@
                         <tbody>
                             @foreach($companies as $company)
                                 <tr>
-                                    <td>{{ $company->name }}</td>
-                                    <td>{{ $company->business_name }}</td>
-                                    <td>{{ $company->account->total_purchases }}</td>
-                                    <td>{{ $company->account->total_paid }}</td>
-                                    <td>{{ $company->account->pending_balance }}</td>
-                                    <td>{{ $company->account->last_payment_date ? date('d-m-Y', strtotime($company->account->last_payment_date)) : 'N/A' }}</td>
+                                    <td>{{ $company->company->name }}</td>
+                                    <td>{{ $company->company->address }}</td>
+                                    <td>{{ $company->total_purchases }}</td>
+                                    <td>{{ $company->total_paid }}</td>
+                                    <td>{{ $company->pending_balance }}</td>
+                                    <td>{{ $company->last_payment_date ? date('d-m-Y', strtotime($company->last_payment_date)) : 'N/A' }}</td>
                                     <td>
                                         <a href="{{ route('companies.transactions', $company->id) }}" class="btn btn-sm btn-info">View Transactions</a>
                                     </td>
