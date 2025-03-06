@@ -11,7 +11,7 @@
                     </div>
                     
                     <!-- Transaction Summary Cards -->
-                    {{-- <div class="row mb-4">
+                    <div class="row mb-4">
                         <div class="col-md-3">
                             <div class="card shadow-sm border-primary h-100">
                                 <div class="card-body text-center">
@@ -35,7 +35,7 @@
                                 <div class="card-body text-center">
                                     <i class="fas fa-balance-scale fa-2x mb-2 text-danger"></i>
                                     <h6 class="text-muted">Pending Balance</h6>
-                                    <h4 class="text-danger mb-0">Rs. {{ !empty($formattedTransactions) ? number_format(end($formattedTransactions)['balance'], 2) : '0.00' }}</h4>
+                                    <h4 class="text-danger mb-0">Rs. {{ number_format(end($formattedTransactions)['balance'], 2) }}</h4>
                                 </div>
                             </div>
                         </div>
@@ -56,7 +56,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div> --}}
+                    </div>
                     <table id="customerAccountTable" class="table table-bordered table-hover table-striped mt-3">
                         <thead class="table-dark">
                             <tr>
