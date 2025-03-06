@@ -72,7 +72,7 @@ class CompanyController extends Controller
 
     public function accounts()
     {
-        $companies = Company::with('account')->get();
+        $companies = CompanyAccount::all();
         return view('dashboard.companies.accounts', compact('companies'));
     }
 
