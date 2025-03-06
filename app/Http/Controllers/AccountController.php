@@ -88,7 +88,7 @@ class AccountController extends Controller
         $transactions = CustomerTransaction::where('customer_id', $account->customer_id)
                         ->orderBy('transaction_date', 'asc')
                         ->get();
-    
+      
         // Initialize variables for totals
         $balance = 0;
         $totalPurchases = 0;
