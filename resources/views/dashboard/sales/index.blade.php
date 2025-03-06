@@ -78,7 +78,7 @@
     $(document).ready(function() {
         var table = $('#saleTable').DataTable({
             dom: 'Bfrtip',
-            order: [[6, 'desc']], // Order by the "Last Update" column in descending order
+            order: [[0, 'desc']], // Order by the Invoice # column (index 0) in descending order
             buttons: [
                 'excel', 'csv', 'pdf', 'print', 
                 {
