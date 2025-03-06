@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('customer_transactions', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('customer_id');
+            $table->foreignId('sales_id')->nullable()->constrained('sales');
             $table->enum('transaction_type', ['debit', 'credit']);
             $table->decimal('amount', 15, 2);
             // $table->date('transaction_date');
