@@ -88,8 +88,8 @@
             ]
         });
 
-        // Invoice view handler - opens in new tab
-        $('.view-invoice').on('click', function() {
+        // Invoice view handler using event delegation
+        $('#saleTable').on('click', '.view-invoice', function() {
             var saleId = $(this).data('sale-id');
             window.open(`/sales/${saleId}/print`, '_blank');
         });
