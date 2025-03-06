@@ -35,7 +35,7 @@
                                 <div class="card-body text-center">
                                     <i class="fas fa-balance-scale fa-2x mb-2 text-danger"></i>
                                     <h6 class="text-muted">Pending Balance</h6>
-                                    <h4 class="text-danger mb-0">Rs. {{ number_format(end($formattedTransactions)['balance'], 2) }}</h4>
+                                    <h4 class="text-danger mb-0">Rs. {{ !empty($formattedTransactions) ? number_format(end($formattedTransactions)['balance'], 2) : '0.00' }}</h4>
                                 </div>
                             </div>
                         </div>
