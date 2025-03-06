@@ -26,13 +26,13 @@
                                     <td>{{ $company->phone_no }}</td>
                                     <td>
                                         <div class="d-flex">
-                                            <a href="{{ route('companies.edit', $company->id) }}" class="btn btn-warning btn-sm me-2">Edit</a>
-                                            <form action="{{ route('companies.destroy', $company->id) }}" method="POST" class="d-inline me-2">
+                                            <a href="{{ route('companies.edit', $company->id) }}" class="btn btn-warning btn-sm me-1">Edit</a>
+                                            <form action="{{ route('companies.destroy', $company->id) }}" method="POST" class="d-inline me-1">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')">Delete</button>
                                             </form>
-                                            <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#purchaseStockModal{{ $company->id }}">
+                                            <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#purchaseStockModal{{ $company->id }}">
                                                 Purchase Stock
                                             </button>
                                         </div>
@@ -45,36 +45,72 @@
                                                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                     </div>
                                                     <div class="modal-body">
-                                                        <form action="{{ route('stocks.purchase', $company->id) }}" method="POST">
+                                                        <form action="{{ route('stocks.purchase', $company->id) }}" method="POST" id="purchaseForm{{ $company->id }}">
                                                             @csrf
                                                             <div class="mb-3">
-                                                                <label for="product" class="form-label">Product</label>
-                                                                <select class="form-control" id="product" name="product_id" required>
+                                                                <label for="product{{ $company->id }}" class="form-label">Product</label>
+                                                                <select class="form-control @error('product_id') is-invalid @enderror" id="product{{ $company->id }}" name="product_id" required onchange="updateProductDetails(this, {{ $company->id }}); updateTotalAmount{{ $company->id }}();">
+                                                                    <option value="">Select a product</option>
                                                                     @foreach ($company->products as $product)
-                                                                        <option value="{{ $product->id }}">{{ $product->name }}</option>
+                                                                        <option value="{{ $product->id }}" data-purchase-price="{{ $product->purchase_price }}" data-sale-price="{{ $product->sale_price }}">{{ $product->name }}</option>
                                                                     @endforeach
                                                                 </select>
+                                                                @error('product_id')
+                                                                    <span class="invalid-feedback">{{ $message }}</span>
+                                                                @enderror
                                                             </div>
                                                             <div class="row">
                                                                 <div class="col-md-6 mb-3">
-                                                                    <label for="stockAmount" class="form-label">Stock Amount</label>
-                                                                    <input type="number" class="form-control" id="stockAmount" name="stock_amount" required>
+                                                                    <label for="purchase_price{{ $company->id }}" class="form-label">Purchase Price</label>
+                                                                    <input type="number" step="0.01" class="form-control @error('purchase_price') is-invalid @enderror" id="purchase_price{{ $company->id }}" name="purchase_price" required value="{{ old('purchase_price') }}" oninput="updateTotalAmount{{ $company->id }}()">
+                                                                    @error('purchase_price')
+                                                                        <span class="invalid-feedback">{{ $message }}</span>
+                                                                    @enderror
                                                                 </div>
                                                                 <div class="col-md-6 mb-3">
-                                                                    <label for="purchaseDate" class="form-label">Purchase Date</label>
-                                                                    <input type="date" class="form-control" id="purchaseDate" name="purchase_date" value="{{ now()->format('Y-m-d') }}" required>
+                                                                    <label for="sale_price{{ $company->id }}" class="form-label">Sale Price</label>
+                                                                    <input type="number" step="0.01" class="form-control @error('sale_price') is-invalid @enderror" id="sale_price{{ $company->id }}" name="sale_price" required value="{{ old('sale_price') }}">
+                                                                    @error('sale_price')
+                                                                        <span class="invalid-feedback">{{ $message }}</span>
+                                                                    @enderror
+                                                                </div>
+                                                                <div class="col-md-6 mb-3">
+                                                                    <label for="quantity{{ $company->id }}" class="form-label">Quantity</label>
+                                                                    <input type="number" class="form-control @error('quantity') is-invalid @enderror" id="quantity{{ $company->id }}" name="quantity" required value="0" min="1" required oninput="updateTotalAmount{{ $company->id }}()">
+                                                                    @error('quantity')
+                                                                        <span class="invalid-feedback">{{ $message }}</span>
+                                                                    @enderror
+                                                                </div>
+                                                                <div class="col-md-6 mb-3">
+                                                                    <label for="paid_amount{{ $company->id }}" class="form-label">Paid Amount</label>
+                                                                    <input type="number" required class="form-control @error('paid_amount') is-invalid @enderror" id="paid_amount{{ $company->id }}" name="paid_amount" value="0" min="0" placeholder="Optional">
+                                                                    @error('paid_amount')
+                                                                        <span class="invalid-feedback">{{ $message }}</span>
+                                                                    @enderror
+                                                                </div>
+                                                                <div class="col-md-12 mb-3">
+                                                                    <label for="total_amount{{ $company->id }}" class="form-label">Total Amount</label>
+                                                                    <input type="number" step="0.01" class="form-control" id="total_amount{{ $company->id }}" name="total_amount" readonly placeholder="Calculated automatically">
                                                                 </div>
                                                             </div>
-                                                            {{-- <div class="mb-3">
-                                                                <label for="purchaseDate" class="form-label">Purchase Date</label>
-                                                                <input type="date" class="form-control" id="purchaseDate" name="purchase_date" value="{{ now()->format('Y-m-d') }}" required>
-                                                            </div> --}}
                                                             <button type="submit" class="btn btn-warning">Submit</button>
                                                         </form>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
+
+                                        <script>
+                                            function updateTotalAmount{{ $company->id }}() {
+                                                var purchasePriceEl = document.getElementById('purchase_price{{ $company->id }}');
+                                                var quantityEl = document.getElementById('quantity{{ $company->id }}');
+                                                var totalAmountEl = document.getElementById('total_amount{{ $company->id }}');
+                                                var purchasePrice = parseFloat(purchasePriceEl.value) || 0;
+                                                var quantity = parseInt(quantityEl.value) || 0;
+                                                var total = purchasePrice * quantity;
+                                                totalAmountEl.value = total.toFixed(2);
+                                            }
+                                        </script>
                                     </td>
                                 </tr>
                             @endforeach
@@ -103,6 +139,23 @@
             ]
         });
     });
+
+    function updateProductDetails(select, companyId) {
+        const selectedOption = select.options[select.selectedIndex];
+        if (selectedOption.value) {
+            document.getElementById('purchase_price' + companyId).value = selectedOption.dataset.purchasePrice;
+            document.getElementById('sale_price' + companyId).value = selectedOption.dataset.salePrice;
+        }
+    }
 </script>
 
 @endsection
+<script>
+function updateProductDetails(select, companyId) {
+    const selectedOption = select.options[select.selectedIndex];
+    if (selectedOption.value) {
+        document.getElementById('purchase_price').value = selectedOption.dataset.purchasePrice;
+        document.getElementById('sale_price').value = selectedOption.dataset.salePrice;
+    }
+}
+</script>

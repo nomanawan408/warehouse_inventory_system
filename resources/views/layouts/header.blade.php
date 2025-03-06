@@ -22,8 +22,14 @@
                 <li class="nav-item">
                     <a class="nav-link px-3 rounded-pill mx-1 transition" href="{{url('/customers')}}">Customers</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link px-3 rounded-pill mx-1 transition" href="{{url('/companies')}}">Companies</a>
+                <li class="nav-item dropdown">
+                    <a class="nav-link px-3 rounded-pill mx-1 transition dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Companies
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{url('/companies')}}">Companies</a></li>
+                        <li><a class="dropdown-item" href="{{ route('companies.accounts') }}">Company Accounts</a></li>
+                    </ul>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link px-3 rounded-pill mx-1 transition" href="{{url('/accounts')}}">Accounts</a>

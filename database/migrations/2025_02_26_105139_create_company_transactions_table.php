@@ -15,11 +15,12 @@ return new class extends Migration
             $table->id();
             $table->foreignId('company_id')->constrained()->onDelete('cascade');
             $table->foreignId('purchase_id')->nullable()->constrained('purchases')->onDelete('set null');
-            $table->enum('transaction_type', ['credit', 'debit']);
+            $table->enum('transaction_type', ['credit', 'debit']); // Use 'credit' for purchases on credit (amount recorded, not paid) and 'debit' when payment is made at the time of purchase
             $table->decimal('amount', 10, 2);
+            $table->timestamp('transaction_date')->default(now());
+            $table->string('detail')->nullable();// Additional transaction details
             $table->string('payment_method')->nullable();
             $table->string('reference')->nullable(); // Invoice number or bank reference
-            $table->timestamp('transaction_date')->default(now());
             $table->timestamps();
         });
     }

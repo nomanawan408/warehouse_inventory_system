@@ -114,7 +114,7 @@ class AccountController extends Controller
     
             // Prepare the transaction data with improved formatting
             $formattedTransactions[] = [
-                'transaction_date' => \Carbon\Carbon::parse($transaction->transaction_date)->format('d M Y'),
+                'transaction_date' => \Carbon\Carbon::parse($transaction->transaction_date)->format('Y-m-d H:i:s'),
                 'debit' => $debit,
                 'credit' => $credit,
                 'balance' => $balance,

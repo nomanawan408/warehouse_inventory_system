@@ -5,6 +5,12 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Company;
+use Illuminate\Support\Facades\DB;
+use App\Models\CompanyTransaction;
+use App\Models\Payment;
+// use App\Models\TransactionItem;
+use App\Models\Purchase;
+use App\Models\PurchaseItem;
 
 class ProductsController extends Controller
 {
@@ -90,18 +96,6 @@ class ProductsController extends Controller
         return redirect()->route('products.index')->with('success', 'Product stock updated successfully');
     }
 
+    
 
-    public function purchaseStock(Request $request, $companyId)
-    {
-        $validatedData = $request->validate([
-            'stock_amount' => 'required|integer|min:1',
-            'purchase_date' => 'required|date',
-        ]);
-
-        $company = Company::findOrFail($companyId);
-        $company->stock += $validatedData['stock_amount'];
-        $company->save();
-
-        return redirect()->route('companies.index')->with('success', 'Stock purchased successfully');
-    }
 }

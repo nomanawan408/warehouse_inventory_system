@@ -12,7 +12,7 @@ use App\Models\Payment;
 use App\Models\CustomerAccount;
 use App\Models\CustomerTransaction;
 use Carbon\Carbon;
-use DB;
+use Illuminate\Support\Facades\DB;
 
 class SalesController extends Controller
 {
@@ -38,7 +38,7 @@ class SalesController extends Controller
         $customers = Customer::all();
 
         return view('welcome', compact('sales','customers'));
-    }
+    } 
 
     public function store(Request $request)
     {
@@ -108,14 +108,16 @@ class SalesController extends Controller
             $customerAccount->last_payment_date = now();
             $customerAccount->save();
 
-            // Create payment record
-            $payment = Payment::create([
-                'customer_id' => $validated['customer_id'],
-                'sale_id' => $sale->id,
-                'amount_paid' => $validated['paid_amount'],
-                'payment_type' => 'Cash', // Default to Cash, modify if payment type is passed in request
-                'payment_date' => now()
-            ]);
+            // Create payment record if paid amount is greater than 0
+            if ($validated['paid_amount'] > 0) {
+                Payment::create([
+                    'customer_id' => $validated['customer_id'],
+                    'sale_id' => $sale->id,
+                    'amount_paid' => $validated['paid_amount'],
+                    'payment_type' => 'Cash', // Default to Cash, modify if payment type is passed in request
+                    'payment_date' => now()
+                ]);
+            }
 
             // 4️⃣ Record Customer Transactions
             // Record the sale transaction (debit)

@@ -6,58 +6,46 @@
             <div class="col-md-12">
                 <div class="container-box">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h4>{{ $account->customer->name }} - Transaction History</h4>
-                        <a href="{{ route('accounts.index') }}" class="btn btn-secondary">Back to Accounts</a>
+                        <h4>Company Transaction History</h4>
+                        <a href="{{ route('companies.accounts') }}" class="btn btn-secondary">Back to Company Accounts</a>
                     </div>
                     
                     <!-- Transaction Summary Cards -->
                     <div class="row mb-4">
                         <div class="col-md-3">
-                            <div class="card shadow-sm border-primary h-100">
-                                <div class="card-body text-center">
-                                    <i class="fas fa-shopping-cart fa-2x mb-2 text-primary"></i>
-                                    <h6 class="text-muted">Total Purchases</h6>
-                                    <h4 class="text-primary mb-0">Rs. {{ number_format(array_sum(array_column($formattedTransactions, 'debit')), 2) }}</h4>
+                            <div class="card bg-dark text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">Company Name</h5>
+                                    <h3 class="card-text text-end">{{ $account->company->name }}</h3>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-3">
-                            <div class="card shadow-sm border-success h-100">
-                                <div class="card-body text-center">
-                                    <i class="fas fa-money-bill-wave fa-2x mb-2 text-success"></i>
-                                    <h6 class="text-muted">Total Paid</h6>
-                                    <h4 class="text-success mb-0">Rs. {{ number_format(array_sum(array_column($formattedTransactions, 'credit')), 2) }}</h4>
+                            <div class="card bg-primary text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">Total Debits/Purchases</h5>
+                                    <h3 class="card-text text-end">Rs. {{ number_format(array_sum(array_column($formattedTransactions, 'debit')), 2) }}</h3>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-3">
-                            <div class="card shadow-sm border-danger h-100">
-                                <div class="card-body text-center">
-                                    <i class="fas fa-balance-scale fa-2x mb-2 text-danger"></i>
-                                    <h6 class="text-muted">Pending Balance</h6>
-                                    <h4 class="text-danger mb-0">Rs. {{ number_format(end($formattedTransactions)['balance'], 2) }}</h4>
+                            <div class="card bg-success text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">Total Credits/Paid</h5>
+                                    <h3 class="card-text text-end">Rs. {{ number_format(array_sum(array_column($formattedTransactions, 'credit')), 2) }}</h3>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-3">
-                            <div class="card shadow-sm border-info h-100">
-                                <div class="card-body text-center">
-                                    <i class="far fa-calendar-alt fa-2x mb-2 text-info"></i>
-                                    <h6 class="text-muted">Last Payment Date</h6>
-                                    <h4 class="text-info mb-0">
-                                        @php
-                                            $lastPayment = collect($formattedTransactions)
-                                                ->where('credit', '>', 0)
-                                                ->last();
-                                            $formattedDate = $lastPayment ? date('Y-m-d', strtotime($lastPayment['transaction_date'])) : 'No payments yet';
-                                        @endphp
-                                        {{ $formattedDate }}
-                                    </h4>
+                            <div class="card bg-danger text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">Pending Balance</h5>
+                                    <h3 class="card-text text-end">Rs. {{ number_format(end($formattedTransactions)['balance'], 2) }}</h3>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <table id="customerAccountTable" class="table table-bordered table-hover table-striped mt-3">
+                    <table id="companyAccountTable" class="table table-bordered table-hover table-striped mt-3">
                         <thead class="table-dark">
                             <tr>
                                 <th>Date</th>
@@ -94,12 +82,11 @@
     <script src="https://cdn.datatables.net/buttons/2.0.1/js/buttons.print.min.js"></script>
     <script>
         $(document).ready(function() {
-            $('#customerAccountTable').DataTable({
+            $('#companyAccountTable').DataTable({
                 dom: 'Bfrtip',
                 buttons: [
                     'copy', 'csv', 'excel', 'pdf', 'print'
                 ]
-                order: [[0, 'asc']]
             });
         });
     </script>

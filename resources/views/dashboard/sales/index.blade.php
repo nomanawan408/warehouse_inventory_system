@@ -7,7 +7,6 @@
                 <div class="container-box">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h4>Sales List</h4>
-                        <a href="{{ route('sales.create') }}" class="btn btn-primary">Add Item</a>
                 </div>
                 
                 <div class="mb-3">

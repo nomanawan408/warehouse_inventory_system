@@ -16,7 +16,8 @@ return new class extends Migration
             $table->unsignedBigInteger('customer_id');
             $table->enum('transaction_type', ['debit', 'credit']);
             $table->decimal('amount', 15, 2);
-            $table->date('transaction_date');
+            // $table->date('transaction_date');
+            $table->timestamp('transaction_date')->default(now());
             $table->string('detail')->nullable();
             $table->string('payment_method')->nullable();
             $table->string('reference')->nullable();

@@ -2,14 +2,13 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\StockController;
 use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\SalesController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\CompanyController;
-
+use App\Http\Controllers\PurchaseController;
 use App\Models\Product;
 use Illuminate\Http\Request;
 
@@ -48,6 +47,8 @@ Route::post('/customers', [CustomerController::class, 'store'])->name('customers
 Route::get('/customers/{id}/edit', [CustomerController::class, 'edit'])->name('customers.edit');
 Route::put('/customers/{id}', [CustomerController::class, 'update'])->name('customers.update');
 Route::delete('/customers/{id}', [CustomerController::class, 'destroy'])->name('customers.destroy');
+
+// Stock Routes
 Route::get('/customers/search', [CustomerController::class, 'search'])->name('customers.search');
 
 //Add payments to customer accounts 
@@ -59,6 +60,10 @@ Route::post('/accounts/{id}/pending', [AccountController::class, 'storePendingAm
 
 
 // Company Routes
+Route::get('/companies/accounts', [CompanyController::class, 'accounts'])->name('companies.accounts');
+Route::get('/companies/{id}/transactions', [CompanyController::class, 'transactions'])->name('companies.transactions');
+Route::post('/companies/{id}/record-payment', [CompanyController::class, 'recordPayment'])->name('companies.record-payment');
+
 Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');
 Route::get('/companies/create', [CompanyController::class, 'create'])->name('companies.create');
 Route::post('/companies', [CompanyController::class, 'store'])->name('companies.store');
@@ -66,7 +71,7 @@ Route::get('/companies/{id}/edit', [CompanyController::class, 'edit'])->name('co
 Route::put('/companies/{id}', [CompanyController::class, 'update'])->name('companies.update');
 Route::delete('/companies/{id}', [CompanyController::class, 'destroy'])->name('companies.destroy');
 // Stock Purchase Routes
-Route::post('/stocks/{company}/purchase', [ProductsController::class, 'purchase'])->name('stocks.purchase');
+Route::post('/stocks/{company}/purchase', [PurchaseController::class, 'store'])->name('stocks.purchase');
 
 // Accounts Routes
 Route::get('/accounts', [AccountController::class, 'index'])->name('accounts.index');
@@ -114,12 +119,6 @@ require __DIR__.'/auth.php';
 
 
 
-
-
-
-
-
-Route::resource('stock', StockController::class);
 Route::get('report', [ReportController::class, 'index'])->name('report.index');
 Route::get('report/create', [ReportController::class, 'create'])->name('report.create');
 Route::get('report/view/{id}', [ReportController::class, 'view'])->name('report.view');

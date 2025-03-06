@@ -69,7 +69,7 @@
     <div class="customer-details">
         <h3>Customer Information</h3>
         <strong>Name:</strong> {{ $sale->customer->name }}<br>
-        <strong>Phone:</strong> {{ $sale->customer->phone }}<br>
+        <strong>Phone:</strong> {{ $sale->customer->phone_no }}<br>
         <strong>Address:</strong> {{ $sale->customer->address }}
     </div>
 
