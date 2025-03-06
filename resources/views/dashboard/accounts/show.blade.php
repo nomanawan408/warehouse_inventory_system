@@ -29,7 +29,7 @@
                                     <i class="fas fa-money-bill-wave fa-2x mb-2 text-success"></i>
                                     <h6 class="text-muted">Total Paid</h6>
                                     <h4 class="text-success mb-0">Rs. 
-                                        {{ number_format(floatval($account->total_paid), 2) }}
+                                        {{ number_format($account->total_paid ?? 0, 2) }}
                                     </h4>
                                 </div>
                             </div>
