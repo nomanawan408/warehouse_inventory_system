@@ -6,7 +6,7 @@
             <div class="col-md-12">
                 <div class="container-box">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h4>{{ $account->customer->name }} - Transaction History</h4>
+                    <h4>{{ $account->customer->name }} - Transaction History</h4>
                         <a href="{{ route('accounts.index') }}" class="btn btn-secondary">Back to Accounts</a>
                     </div>
                     
@@ -17,7 +17,7 @@
                                 <div class="card-body text-center">
                                     <i class="fas fa-shopping-cart fa-2x mb-2 text-primary"></i>
                                     <h6 class="text-muted">Total Purchases</h6>
-                                    <h4 class="text-primary mb-0">Rs. {{ number_format(collect($formattedTransactions)->sum('debit'), 2) }}</h4>
+                                    <h4 class="text-primary mb-0">Rs. {{ number_format(array_sum(array_column($formattedTransactions, 'debit')), 2) }}</h4>
                                 </div>
                             </div>
                         </div>
@@ -26,7 +26,7 @@
                                 <div class="card-body text-center">
                                     <i class="fas fa-money-bill-wave fa-2x mb-2 text-success"></i>
                                     <h6 class="text-muted">Total Paid</h6>
-                                    <h4 class="text-success mb-0">Rs. {{ number_format(collect($formattedTransactions)->sum('credit'), 2) }}</h4>
+                                    <h4 class="text-success mb-0">Rs. {{ number_format(array_sum(array_column($formattedTransactions, 'credit')), 2) }}</h4>
                                 </div>
                             </div>
                         </div>
@@ -34,7 +34,7 @@
                             <div class="card shadow-sm border-danger h-100">
                                 <div class="card-body text-center">
                                     <i class="fas fa-balance-scale fa-2x mb-2 text-danger"></i>
-                                    <h6 class="text-muted">Current Balance</h6>
+                                    <h6 class="text-muted">Pending Balance</h6>
                                     <h4 class="text-danger mb-0">Rs. {{ !empty($formattedTransactions) ? number_format(end($formattedTransactions)['balance'], 2) : '0.00' }}</h4>
                                 </div>
                             </div>
@@ -49,7 +49,7 @@
                                             $lastPayment = collect($formattedTransactions)
                                                 ->where('credit', '>', 0)
                                                 ->last();
-                                            $formattedDate = $lastPayment ? \Carbon\Carbon::parse($lastPayment['transaction_date'])->format('Y-m-d') : 'No payments yet';
+                                            $formattedDate = $lastPayment ? date('Y-m-d', strtotime($lastPayment['transaction_date'])) : 'No payments yet';
                                         @endphp
                                         {{ $formattedDate }}
                                     </h4>
@@ -57,7 +57,6 @@
                             </div>
                         </div>
                     </div>
-
                     <table id="customerAccountTable" class="table table-bordered table-hover table-striped mt-3">
                         <thead class="table-dark">
                             <tr>
@@ -71,10 +70,10 @@
                         <tbody>
                             @foreach ($formattedTransactions as $transaction)
                                 <tr>
-                                    <td>{{ \Carbon\Carbon::parse($transaction['transaction_date'])->format('Y-m-d H:i:s') }}</td>
-                                    <td>{{ $transaction['debit'] > 0 ? number_format($transaction['debit'], 2) : '' }}</td>
-                                    <td>{{ $transaction['credit'] > 0 ? number_format($transaction['credit'], 2) : '' }}</td>
-                                    <td>{{ number_format($transaction['balance'], 2) }}</td>
+                                    <td>{{ $transaction['transaction_date'] }}</td>
+                                    <td>{{ $transaction['debit'] ? number_format((float)$transaction['debit'], 2) : '' }}</td>
+                                    <td>{{ $transaction['credit'] ? number_format((float)$transaction['credit'], 2) : '' }}</td>
+                                    <td>{{ number_format((float)$transaction['balance'], 2) }}</td>
                                     <td>{{ $transaction['detail'] }}</td>
                                 </tr>
                             @endforeach
@@ -84,25 +83,24 @@
             </div>
         </div>
     </div>
-
-   <!-- DataTables CSS and JS -->
-   <link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css">
-   <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.0.1/css/buttons.dataTables.min.css">
-   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-   <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
-   <script src="https://cdn.datatables.net/buttons/2.0.1/js/dataTables.buttons.min.js"></script>
-   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
-   <script src="https://cdn.datatables.net/buttons/2.0.1/js/buttons.html5.min.js"></script>
-   <script src="https://cdn.datatables.net/buttons/2.0.1/js/buttons.print.min.js"></script>
-   <script>
-       $(document).ready(function() {
-           $('#customerAccountTable').DataTable({
-               dom: 'Bfrtip',
-               buttons: [
-                   'copy', 'csv', 'excel', 'pdf', 'print'
-               ],
-               order: [[0, 'asc']]
-           });
-       });
-   </script>
+    <!-- DataTables CSS and JS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.0.1/css/buttons.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.0.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.0.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.0.1/js/buttons.print.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#customerAccountTable').DataTable({
+                dom: 'Bfrtip',
+                buttons: [
+                    'copy', 'csv', 'excel', 'pdf', 'print'
+                ],
+                order: [[0, 'asc']]
+            });
+        });
+    </script>
 @endsection
