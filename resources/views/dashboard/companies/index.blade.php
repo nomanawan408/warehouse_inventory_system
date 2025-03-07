@@ -25,22 +25,22 @@
                                     <td>{{ $company->address }}</td>
                                     <td>{{ $company->phone_no }}</td>
                                     <td>
-                                    <div class="d-flex gap-2 justify-content-start align-items-center" style="min-width: 250px;">
-                                        <a href="{{ route('companies.transactions', $company->id) }}" class="btn btn-info btn-sm shadow-sm rounded-pill" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;" data-bs-toggle="tooltip" data-bs-title="View Company Transactions">
-                                            <i class="ti ti-eye"></i>
+                                    <div class="d-flex gap-2 justify-content-start align-items-center">
+                                        <a href="{{ route('companies.transactions', $company->id) }}" class="btn btn-primary btn-sm shadow-sm rounded-pill" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; padding: 0;" data-bs-toggle="tooltip" data-bs-placement="top" title="View Company Transactions">
+                                            <i class="ti ti-eye" style="font-size: 1.2rem;"></i>
                                         </a>
-                                        <a href="{{ route('companies.edit', $company->id) }}" class="btn btn-warning btn-sm shadow-sm rounded-pill" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;" data-bs-toggle="tooltip" data-bs-title="Edit Company">
-                                            <i class="ti ti-edit"></i>
+                                        <a href="{{ route('companies.edit', $company->id) }}" class="btn btn-warning btn-sm shadow-sm rounded-pill" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; padding: 0;" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Company">
+                                            <i class="ti ti-edit" style="font-size: 1.2rem;"></i>
                                         </a>
                                         <form action="{{ route('companies.destroy', $company->id) }}" method="POST" class="d-inline-block m-0">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-sm shadow-sm rounded-pill" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;" onclick="return confirm('Are you sure you want to delete this company?')" data-bs-toggle="tooltip" data-bs-title="Delete Company">
-                                                <i class="ti ti-trash"></i>
+                                            <button type="submit" class="btn btn-danger btn-sm shadow-sm rounded-pill" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; padding: 0;" onclick="return confirm('Are you sure you want to delete this company?')" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete Company">
+                                                <i class="ti ti-trash" style="font-size: 1.2rem;"></i>
                                             </button>
                                         </form>
-                                        <button type="button" class="btn btn-success btn-sm shadow-sm rounded-pill" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;" data-bs-toggle="modal" data-bs-target="#purchaseStockModal{{ $company->id }}" data-bs-toggle="tooltip" data-bs-title="Purchase Stock">
-                                            <i class="ti ti-shopping-cart"></i>
+                                        <button type="button" class="btn btn-success btn-sm shadow-sm rounded-pill" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; padding: 0;" data-bs-toggle="modal" data-bs-target="#purchaseStockModal{{ $company->id }}" data-bs-placement="top" title="Purchase Stock">
+                                            <i class="ti ti-shopping-cart" style="font-size: 1.2rem;"></i>
                                         </button>
                                     </div>
                                         <!-- Modal -->
