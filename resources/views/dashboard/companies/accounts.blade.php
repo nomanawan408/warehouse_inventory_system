@@ -38,7 +38,7 @@
                                             </button>
 
                                             <!-- View Transactions Button -->
-                                            <a href="{{ route('companies.transactions', $company->id) }}" class="btn btn-primary btn-sm shadow-sm rounded-pill" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; padding: 0;" data-bs-toggle="tooltip" data-bs-placement="top" title="View Company Transactions">
+                                            <a href="{{ route('companies.transactions', $company->id) }}" class="btn btn-success btn-sm shadow-sm rounded-pill" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; padding: 0;" data-bs-toggle="tooltip" data-bs-placement="top" title="View Company Transactions">
                                                 <i class="ti ti-eye" style="font-size: 1.2rem;"></i>
                                             </a>
                                         </div>
