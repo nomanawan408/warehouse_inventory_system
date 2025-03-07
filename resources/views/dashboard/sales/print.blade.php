@@ -58,6 +58,7 @@
     </div>
 
     <div class="invoice-header">
+        <h2>MEHMOOD TRADERS KHALABAT</h2>
         <h2>SALES INVOICE</h2>
     </div>
 
