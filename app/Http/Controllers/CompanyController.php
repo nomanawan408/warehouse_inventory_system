@@ -70,6 +70,32 @@ class CompanyController extends Controller
         return view('dashboard.companies.edit', compact('company'));
     }
 
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'business_name' => 'required|string|max:255',
+            'phone_no' => 'required|string|max:20',
+            'address' => 'required|string|max:255'
+        ]);
+
+        try {
+            $company = Company::findOrFail($id);
+            $company->name = $request->name;
+            $company->business_name = $request->business_name;
+            $company->phone_no = $request->phone_no;
+            $company->address = $request->address;
+            $company->save();
+
+            return redirect()->route('companies.index')
+                ->with('success', 'Company updated successfully');
+        } catch (\Exception $e) {
+            return redirect()->route('companies.edit', $id)
+                ->with('error', 'Error updating company: ' . $e->getMessage())
+                ->withInput();
+        }
+    }
+
     public function accounts()
     {
         $companies = CompanyAccount::all();
@@ -119,32 +145,34 @@ class CompanyController extends Controller
         return view('dashboard.companies.transactions', compact('account', 'formattedTransactions'));
     }
 
-    public function recordPayment(Request $request, $id)
-    {
-        $request->validate([
-            'amount' => 'required|numeric|min:0',
-            'payment_date' => 'required|date',
-            'notes' => 'nullable|string'
-        ]);
+public function recordPayment(Request $request, $id)
+{
+    $request->validate([
+        'amount' => 'required|numeric|min:0',
+        'payment_date' => 'required|date',
+        'notes' => 'nullable|string',
+        'reference' => 'nullable|string|max:255' // Added reference validation
+    ]);
 
-        $company = Company::findOrFail($id);
-        $account = $company->account;
+    $company = Company::findOrFail($id);
+    $account = $company->account;
 
-        // Create transaction record
-        $transaction = new CompanyTransaction();
-        $transaction->company_id = $id;
-        $transaction->amount = $request->amount;
-        $transaction->transaction_type = 'debit';
-        $transaction->detail = $request->notes ?? 'Payment received';
-        $transaction->transaction_date = $request->payment_date;
-        $transaction->save();
+    // Create transaction record
+    $transaction = new CompanyTransaction();
+    $transaction->company_id = $id;
+    $transaction->amount = $request->amount;
+    $transaction->transaction_type = 'debit';
+    $transaction->detail = $request->notes ?? 'Payment received';
+    $transaction->transaction_date = $request->payment_date;
+    $transaction->reference = 'Payment received'; // Added reference field
+    $transaction->save();
 
-        // Update account balances
-        $account->total_paid += $request->amount;
-        $account->pending_balance -= $request->amount;
-        $account->last_payment_date = $request->payment_date;
-        $account->save();
+    // Update account balances
+    $account->total_paid += $request->amount;
+    $account->pending_balance -= $request->amount;
+    $account->last_payment_date = $request->payment_date;
+    $account->save();
 
-        return redirect()->back()->with('success', 'Payment recorded successfully');
-    }
+    return redirect()->back()->with('success', 'Payment recorded successfully');
+}
 }

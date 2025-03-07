@@ -30,12 +30,21 @@
                                     <td>{{ $customer->phone_no }}</td>
                                     <td>{{ $customer->cnic }}</td>
                                     <td>
-                                        <a href="{{ route('customers.edit', $customer->id) }}" class="btn btn-sm btn-warning">Edit</a>
-                                        <form action="{{ route('customers.destroy', $customer->id) }}" method="POST" style="display:inline;">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                                        </form>
+                                        <div class="d-flex gap-2 justify-content-start align-items-center"  >
+                                            <a href="{{  route('accounts.transactions', $customer->id) }}" class="btn btn-primary btn-sm shadow-sm rounded-pill" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; padding: 0;" data-bs-toggle="tooltip" data-bs-placement="top" title="View Company Transactions">
+                                                <i class="ti ti-eye" style="font-size: 1.2rem;"></i>
+                                            </a>
+                                            <a href="{{ route('customers.edit', $customer->id) }}" class="btn btn-warning btn-sm shadow-sm rounded-pill" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; padding: 0;" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Customer">
+                                                <i class="ti ti-edit" style="font-size: 1.2rem;"></i>
+                                            </a>
+                                            <form action="{{ route('customers.destroy', $customer->id) }}" method="POST" class="d-inline-block m-0">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-danger btn-sm shadow-sm rounded-pill" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; padding: 0;" onclick="return confirm('Are you sure you want to delete this customer?')" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete Customer">
+                                                    <i class="ti ti-trash" style="font-size: 1.2rem;"></i>
+                                                </button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach

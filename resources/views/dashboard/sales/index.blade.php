@@ -51,7 +51,11 @@
                                     </td>
                                     <td>{{ $sale->updated_at }}</td>
                                     <td>
-                                        <button class="btn btn-success fo btn-sm view-invoice" data-sale-id="{{ $sale->id }}">Invoice</button>
+                                        <div class="d-flex gap-2 justify-content-start align-items-center" >
+                                            <button class="btn btn-success btn-sm shadow-sm rounded-pill view-invoice" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; padding: 0;" data-sale-id="{{ $sale->id }}" data-bs-toggle="tooltip" data-bs-placement="top" title="View Invoice">
+                                                <i class="ti ti-file-invoice" style="font-size: 1.2rem;"></i>
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach

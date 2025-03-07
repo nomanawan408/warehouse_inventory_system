@@ -6,7 +6,7 @@
             <div class="col-md-12">
                 <div class="container-box">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h4>Accounts List</h4>
+                        <h4>Customer Accounts</h4>
                         {{-- <a href="{{ route('customers.create') }}" class="btn btn-primary">Create Customer</a> --}}
                     </div>
                     <table id="customerAccountTable" class="table table-bordered table-hover table-striped mt-3">
@@ -32,14 +32,17 @@
                                             {{ $account->last_payment_date ? \Carbon\Carbon::parse($account->last_payment_date)->format('d M Y') : 'N/A' }}
                                         </td>
                                         <td>
-                                            <div class="d-flex">
-                                                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addPaymentModal{{ $account->id }}">
-                                                    Add Payment
+                                            <div class="d-flex gap-2 justify-content-start align-items-center">
+                                                <button type="button" class="btn btn-primary btn-sm shadow-sm rounded-pill" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; padding: 0;" data-bs-toggle="modal" data-bs-target="#addPaymentModal{{ $account->id }}" title="Add Payment">
+                                                    <i class="ti ti-cash" style="font-size: 1.2rem;"></i>
                                                 </button>
-                                                &nbsp;
-                                                <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#addPendingAmountModal{{ $account->id }}">
-                                                    Add Pending Amount
+                                                <button type="button" class="btn btn-warning btn-sm shadow-sm rounded-pill" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; padding: 0;" data-bs-toggle="modal" data-bs-target="#addPendingAmountModal{{ $account->id }}" title="Add Pending Amount">
+                                                    <i class="ti ti-clock" style="font-size: 1.2rem;"></i>
                                                 </button>
+                                                <a href="{{ route('accounts.transactions', $account->id) }}" class="btn btn-secondary btn-sm shadow-sm rounded-pill" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; padding: 0;" data-bs-toggle="tooltip" data-bs-placement="top" title="View Transactions">
+                                                    <i class="ti ti-list" style="font-size: 1.2rem;"></i>
+                                                </a>
+                                            </div>
                                                 <!-- Modal -->
                                                 <div class="modal fade" id="addPendingAmountModal{{ $account->id }}" tabindex="-1" aria-labelledby="addPendingAmountModalLabel{{ $account->id }}" aria-hidden="true">
                                                     <div class="modal-dialog">
@@ -66,8 +69,6 @@
                                                     </div>
                                                 </div>
                                                 &nbsp;
-                                                {{-- <a href="{{ route('accounts.show', $account->id) }}" class="btn btn-primary btn-sm">View</a>  --}}
-                                                <a href="{{ route('accounts.transactions', $account->id) }}" class="btn btn-secondary btn-sm">View</a>
                                                 <!-- Modal -->
                                                 <div class="modal fade" id="addPaymentModal{{ $account->id }}" tabindex="-1" aria-labelledby="addPaymentModalLabel{{ $account->id }}" aria-hidden="true">
                                                     <div class="modal-dialog">

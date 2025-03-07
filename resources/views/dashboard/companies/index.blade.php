@@ -25,17 +25,24 @@
                                     <td>{{ $company->address }}</td>
                                     <td>{{ $company->phone_no }}</td>
                                     <td>
-                                        <div class="d-flex">
-                                            <a href="{{ route('companies.edit', $company->id) }}" class="btn btn-warning btn-sm me-1">Edit</a>
-                                            <form action="{{ route('companies.destroy', $company->id) }}" method="POST" class="d-inline me-1">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')">Delete</button>
-                                            </form>
-                                            <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#purchaseStockModal{{ $company->id }}">
-                                                Purchase Stock
+                                    <div class="d-flex gap-2 justify-content-start align-items-center" style="min-width: 250px;">
+                                        <a href="{{ route('companies.transactions', $company->id) }}" class="btn btn-info btn-sm shadow-sm rounded-pill" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;" data-bs-toggle="tooltip" data-bs-title="View Company Transactions">
+                                            <i class="ti ti-eye"></i>
+                                        </a>
+                                        <a href="{{ route('companies.edit', $company->id) }}" class="btn btn-warning btn-sm shadow-sm rounded-pill" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;" data-bs-toggle="tooltip" data-bs-title="Edit Company">
+                                            <i class="ti ti-edit"></i>
+                                        </a>
+                                        <form action="{{ route('companies.destroy', $company->id) }}" method="POST" class="d-inline-block m-0">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger btn-sm shadow-sm rounded-pill" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;" onclick="return confirm('Are you sure you want to delete this company?')" data-bs-toggle="tooltip" data-bs-title="Delete Company">
+                                                <i class="ti ti-trash"></i>
                                             </button>
-                                        </div>
+                                        </form>
+                                        <button type="button" class="btn btn-success btn-sm shadow-sm rounded-pill" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;" data-bs-toggle="modal" data-bs-target="#purchaseStockModal{{ $company->id }}" data-bs-toggle="tooltip" data-bs-title="Purchase Stock">
+                                            <i class="ti ti-shopping-cart"></i>
+                                        </button>
+                                    </div>
                                         <!-- Modal -->
                                         <div class="modal fade" id="purchaseStockModal{{ $company->id }}" tabindex="-1" aria-labelledby="purchaseStockModalLabel{{ $company->id }}" aria-hidden="true">
                                             <div class="modal-dialog">

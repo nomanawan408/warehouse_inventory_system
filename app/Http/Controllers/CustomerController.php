@@ -54,10 +54,6 @@ class CustomerController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'business_name' => 'required|string|max:255',
-            'phone_no' => 'required|string|max:20',
-            'address' => 'required|string|max:255',
-            'cnic' => 'required|string|max:15|unique:customers,cnic,'.$id,
         ]);
 
         $customer = Customer::find($id);

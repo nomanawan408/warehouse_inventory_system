@@ -78,6 +78,13 @@ class ProductsController extends Controller
     public function destroy($id)
     {
         $product = Product::findOrFail($id);
+
+        // Check if the product is associated with any purchase items
+        if ($product->purchaseItems()->exists()) {
+            return redirect()->route('products.index')->with('error', 'Cannot delete product. It is associated with one or more purchases.');
+        }
+
+        // If no associated records, delete the product
         $product->delete();
         return redirect()->route('products.index')->with('success', 'Product deleted successfully');
     }

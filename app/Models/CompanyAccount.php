@@ -17,10 +17,7 @@ class CompanyAccount extends Model
         'last_payment_date'
     ];
 
-    protected $dates = [
-        'last_payment_date'
-    ];
-
+    // Add this relationship
     public function company()
     {
         return $this->belongsTo(Company::class);

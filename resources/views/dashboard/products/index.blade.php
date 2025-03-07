@@ -35,11 +35,21 @@
                                         <td class="text-danger">Out of stock</td>
                                     @endif
                                     <td>
-                                        <a href="{{ route('products.edit', $product->id) }}" class="btn btn-primary btn-sm">Edit</a>
-                                        <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#updateStockModal{{ $product->id }}">
-                                            Update Stock
-                                        </button>
-
+                                        <div class="d-flex gap-2 justify-content-start align-items-center"  >
+                                            <a href="{{ route('products.edit', $product->id) }}" class="btn btn-warning btn-sm shadow-sm rounded-pill" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; padding: 0;" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Product">
+                                                <i class="ti ti-edit" style="font-size: 1.2rem;"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-primary btn-sm shadow-sm rounded-pill" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; padding: 0;" data-bs-toggle="modal" data-bs-target="#updateStockModal{{ $product->id }}" title="Update Stock">
+                                                <i class="ti ti-box" style="font-size: 1.2rem;"></i>
+                                            </button>
+                                            <form action="{{ route('products.destroy', $product->id) }}" method="POST" class="d-inline-block m-0">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-danger btn-sm shadow-sm rounded-pill" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; padding: 0;" onclick="return confirm('Are you sure you want to delete this product?')" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete Product">
+                                                    <i class="ti ti-trash" style="font-size: 1.2rem;"></i>
+                                                </button>
+                                            </form>
+                                        </div>
                                         <!-- Update Stock Modal -->
                                         <div class="modal fade" id="updateStockModal{{ $product->id }}" tabindex="-1" aria-labelledby="updateStockModalLabel{{ $product->id }}" aria-hidden="true">
                                             <div class="modal-dialog">
@@ -66,11 +76,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <form action="{{ route('products.destroy', $product->id) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this product?')">Delete</button>
-                                        </form>
+                                        
                                     </td>
                                 </tr>
                                 

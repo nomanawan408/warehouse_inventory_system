@@ -17,6 +17,10 @@ Route::get('/', function () {
     return redirect()->route('sales.index');
 });
 
+// Reports Routes
+Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+Route::get('/report/data', [ReportController::class, 'getData'])->name('reports.data');
+
 // Products Routes
 Route::get('/products', [ProductsController::class, 'index'])->name('products.index');
 Route::get('/products/create', [ProductsController::class, 'create'])->name('products.create');

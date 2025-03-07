@@ -84,14 +84,20 @@ class SalesController extends Controller
                 
             $product->decrement('quantity', $item['qty']);
 
-            // Add Sale Item
+            // Calculate profit margin (sale price - purchase price)
+            $profit_margin = $item['price'] - $product->purchase_price;
+            $profit_margin_total = $profit_margin * $item['qty'];
+            
+            // Add Sale Item with profit margin
             SaleItem::create([
-                'sale_id'    => $sale->id,
-                'product_id' => $item['id'],
-                'quantity'   => $item['qty'],
-                'price'      => $item['price'],
-                'discount'   => $item['discount'],
-                'total'      => ($item['qty'] * $item['price']) - $item['discount'],
+                'sale_id'       => $sale->id,
+                'product_id'    => $item['id'],
+                'company_id'    => $product->company_id,
+                'quantity'      => $item['qty'],
+                'price'         => $item['price'],
+                'discount'      => $item['discount'],
+                'profit_margin' => $profit_margin_total,
+                'total'         => ($item['qty'] * $item['price']) - $item['discount'],
             ]);
 
             }

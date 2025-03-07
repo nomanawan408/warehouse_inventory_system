@@ -22,18 +22,19 @@
                 <li class="nav-item">
                     <a class="nav-link px-3 rounded-pill mx-1 transition" href="{{url('/customers')}}">Customers</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link px-3 rounded-pill mx-1 transition" href="{{url('/companies')}}">Companies</a>
+                </li>
                 <li class="nav-item dropdown">
                     <a class="nav-link px-3 rounded-pill mx-1 transition dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        Companies
+                        Accounts
                     </a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="{{url('/companies')}}">Companies</a></li>
-                        <li><a class="dropdown-item" href="{{ route('companies.accounts') }}">Company Accounts</a></li>
+                    <ul class="dropdown-menu p-2">
+                        <li><a class="dropdown-item py-2" href="{{url('/accounts')}}">Customer Accounts</a></li>
+                        <li><a class="dropdown-item py-2" href="{{ route('companies.accounts') }}">Company Accounts</a></li>
                     </ul>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link px-3 rounded-pill mx-1 transition" href="{{url('/accounts')}}">Accounts</a>
-                </li>
+               
                 <li class="nav-item">
                     <a class="nav-link px-3 rounded-pill mx-1 transition" href="{{url('/reports')}}">Reports</a>
                 </li>
