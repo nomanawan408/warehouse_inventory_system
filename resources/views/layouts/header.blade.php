@@ -1,7 +1,7 @@
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark shadow-sm">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="{{ url('/sales/create') }}">Mehmood Traders</a>
+        <a class="navbar-brand fw-bold" href="{{ url('/sales/create') }}">M.Traders</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -34,9 +34,18 @@
                         <li><a class="dropdown-item py-2" href="{{ route('companies.accounts') }}">Company Accounts</a></li>
                     </ul>
                 </li>
-               
+              
+                
                 <li class="nav-item">
                     <a class="nav-link px-3 rounded-pill mx-1 transition" href="{{url('/reports')}}">Reports</a>
+                </li>
+                <li class="nav-item">
+                    <form action="{{ route('logout') }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-secondary nav-link px-3 rounded-pill mx-1 transition">
+                            <i class="ti ti-logout"></i> Logout
+                        </button>
+                    </form>
                 </li>
             </ul>
         </div>
