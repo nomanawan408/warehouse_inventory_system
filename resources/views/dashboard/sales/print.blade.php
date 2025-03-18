@@ -127,6 +127,10 @@
                 <td><strong>Balance Due:</strong></td>
                 <td>{{ number_format($sale->pending_amount, 2) }}</td>
             </tr>
+            <tr>
+                <td><strong>Total Pending Amount:</strong></td>
+                <td>{{ number_format($sale->customer->account->pending_balance, 2) }}</td>
+            </tr>
         </table>
     </div>
 </body>
