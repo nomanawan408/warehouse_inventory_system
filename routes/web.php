@@ -38,9 +38,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/sales', [SalesController::class, 'store'])->name('sales.store');
     Route::get('/sales/{id}', [SalesController::class, 'show'])->name('sales.show');
     Route::get('/sales/{id}/print', [SalesController::class, 'print'])->name('sales.print');
-
-    Route::get('/sales/create', [SalesController::class, 'create'])->name('sales.create');
-    Route::post('/sales', [SalesController::class, 'store'])->name('sales.store');
+    Route::get('/sales/{id}/edit', [SalesController::class, 'edit'])->name('sales.edit');
+    Route::put('/sales/{id}', [SalesController::class, 'update'])->name('sales.update');
+    Route::get('/products/search', [SalesController::class, 'searchProducts'])->name('products.search');
 
     // Customers Routes
     Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
