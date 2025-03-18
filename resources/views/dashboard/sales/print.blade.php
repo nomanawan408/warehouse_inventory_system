@@ -127,10 +127,12 @@
                 <td><strong>Balance Due:</strong></td>
                 <td>{{ number_format($sale->pending_amount, 2) }}</td>
             </tr>
+            @if($sale->customer->name != 'Counter sale')
             <tr>
                 <td><strong>Total Pending Amount:</strong></td>
                 <td>{{ number_format($sale->customer->account->pending_balance, 2) }}</td>
             </tr>
+            @endif
         </table>
     </div>
 </body>
