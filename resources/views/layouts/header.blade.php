@@ -6,17 +6,8 @@
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="d-flex justify-content-end">
-            <p class="text-white-50 mt-2" id="clock"></p>
+            <p class="text-white-50 mt-2" id="clock">{{ \Carbon\Carbon::now()->format('h:i:s A') }}</p>
         </div>
-        <script>
-            function updateClock() {
-                let now = new Date();
-                const time = new Intl.DateTimeFormat('en-GB', { hour: 'numeric', minute: '2-digit', second: '2-digit' }).format(now);
-                document.getElementById("clock").innerText = time;
-            }
-            updateClock();
-            setInterval(updateClock, 1000);
-        </script>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 {{-- <li class="nav-item">

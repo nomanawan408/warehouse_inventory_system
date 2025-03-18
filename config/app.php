@@ -65,7 +65,7 @@ return [
     |
     */
 
-    'timezone' => env('APP_TIMEZONE', 'Asia/Karachi'),
+    'timezone' => 'Asia/Karachi',
 
     /*
     |--------------------------------------------------------------------------
@@ -124,3 +124,6 @@ return [
     ],
 
 ];
+
+\Carbon\Carbon::setTimezone('Asia/Karachi');
+
