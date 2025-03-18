@@ -163,7 +163,7 @@ public function recordPayment(Request $request, $id)
     $transaction->amount = $request->amount;
     $transaction->transaction_type = 'debit';
     $transaction->detail = $request->notes ?? 'Payment received';
-    $transaction->transaction_date = $request->payment_date;
+    $transaction->transaction_date = now();
     $transaction->reference = 'Payment received'; // Added reference field
     $transaction->save();
 
