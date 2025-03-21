@@ -8,42 +8,75 @@
         @media print {
             body {
                 margin: 0;
-                padding: 20px;
+                padding: 10px;
                 font-family: Arial, sans-serif;
+                font-size: 12px;
+                width: 80mm; /* Standard thermal paper width */
             }
         }
+
         .invoice-header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+        }
+        .invoice-header h2 {
+            margin: 5px 0;
+        }
+        .invoice-header .company-name {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 0;
+            padding: 5px 0;
+            letter-spacing: 2px;
+        }
+        .invoice-header .invoice-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 0;
+            padding: 5px 0;
         }
         .invoice-details {
-            margin-bottom: 20px;
+            margin-bottom: 10px;
+            font-size: 12px;
         }
         .customer-details {
-            margin-bottom: 20px;
+            margin-bottom: 10px;
+            font-size: 12px;
+        }
+        .customer-details h3 {
+            margin: 5px 0;
+            font-size: 14px;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
+            font-size: 12px;
         }
         th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
+            padding: 4px;
             text-align: left;
+            border-bottom: 1px dotted #ddd;
         }
         th {
             background-color: #f8f9fa;
         }
         .totals {
-            float: right;
-            width: 300px;
+            width: 100%;
+            margin-top: 10px;
         }
         .totals table {
-            margin-top: 20px;
+            margin-top: 10px;
+            float: right;
+            width: 100%;
+        }
+        .totals td {
+            padding: 2px 4px;
         }
         .print-button {
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
         @media print {
             .print-button {
@@ -58,8 +91,8 @@
     </div>
 
     <div class="invoice-header">
-        <h2>MEHMOOD TRADERS</h2>
-        <h2>SALES INVOICE</h2>
+        <div class="company-name">MEHMOOD TRADERS</div>
+        <div class="invoice-title">SALES INVOICE</div>
     </div>
 
     <div class="invoice-details">
@@ -79,11 +112,10 @@
             <tr>
                 <th>#</th>
                 <th>Product</th>
-                <th>Quantity</th>
+                <th>Qty</th>
                 <th>Price</th>
-                <th>Discount</th>
-                <th>Total Discount</th>
-                <th>Total</th>
+                <th>Dis</th>
+                <th>Tot</th>
             </tr>
         </thead>
         <tbody>
@@ -94,7 +126,6 @@
                 <td>{{ $item->quantity }}</td>
                 <td>{{ number_format($item->price, 2) }}</td>
                 <td>{{ number_format($item->discount, 2) }}</td>
-                <td>{{ number_format($item->discount * $item->quantity, 2) }}</td>
                 <td>{{ number_format(($item->price - $item->discount) * $item->quantity, 2) }}</td>
             </tr>
             @endforeach
@@ -105,32 +136,28 @@
         <table>
             <tr>
                 <td><strong>Subtotal:</strong></td>
-                <td>{{ number_format($sale->total_amount, 2) }}</td>
+                <td align="right">{{ number_format($sale->total_amount, 2) }}</td>
             </tr>
             <tr>
                 <td><strong>Total Discount:</strong></td>
-                <td>{{ number_format($sale->discount, 2) }}</td>
-            </tr>
-            <tr>
-                <td><strong>Tax:</strong></td>
-                <td>{{ number_format($sale->tax, 2) }}</td>
+                <td align="right">{{ number_format($sale->discount, 2) }}</td>
             </tr>
             <tr>
                 <td><strong>Net Total:</strong></td>
-                <td>{{ number_format($sale->net_total, 2) }}</td>
+                <td align="right">{{ number_format($sale->net_total, 2) }}</td>
             </tr>
             <tr>
                 <td><strong>Amount Paid:</strong></td>
-                <td>{{ number_format($sale->amount_paid, 2) }}</td>
+                <td align="right">{{ number_format($sale->amount_paid, 2) }}</td>
             </tr>
             <tr>
                 <td><strong>Balance Due:</strong></td>
-                <td>{{ number_format($sale->pending_amount, 2) }}</td>
+                <td align="right">{{ number_format($sale->pending_amount, 2) }}</td>
             </tr>
             @if($sale->customer->name != 'Counter sale')
             <tr>
-                <td><strong>Total Pending Amount:</strong></td>
-                <td>{{ number_format($sale->customer->account->pending_balance, 2) }}</td>
+                <td><strong>Total Pending:</strong></td>
+                <td align="right">{{ number_format($sale->customer->account->pending_balance, 2) }}</td>
             </tr>
             @endif
         </table>
