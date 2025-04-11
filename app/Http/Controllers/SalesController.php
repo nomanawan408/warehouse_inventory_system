@@ -24,13 +24,45 @@ class SalesController extends Controller
     public function show($id)
     {
         $sale = Sale::with(['customer', 'saleItems.product'])->findOrFail($id);
+        
+        if (request()->ajax()) {
+            // Format sale data for edit modal
+            $formattedSale = [
+                'id' => $sale->id,
+                'invoice_number' => str_pad($sale->id, 3, '0', STR_PAD_LEFT),
+                'customer_id' => $sale->customer_id,
+                'items' => $sale->saleItems->map(function($item) {
+                    return [
+                        'product_id' => $item->product_id,
+                        'quantity' => $item->quantity,
+                        'price' => $item->price,
+                        'discount' => $item->discount
+                    ];
+                }),
+                'discount' => $sale->discount,
+                'amount_paid' => $sale->amount_paid
+            ];
+            
+            return response()->json([
+                'sale' => $formattedSale,
+                'customers' => Customer::all(),
+                'products' => Product::all()
+            ]);
+        }
+        
         return view('dashboard.sales.invoice', compact('sale'));
     }
 
     public function index()
     {
+        // Check for success message in query params and flash it to session
+        if (request()->has('success')) {
+            session()->flash('success', request('success'));
+        }
+        
         $sales = Sale::with('customer', 'saleItems.product')->get();
-        return view('dashboard.sales.index', compact('sales'));
+        $customers = Customer::all();
+        return view('dashboard.sales.index', compact('sales', 'customers'));
     }
 
     public function create(){
@@ -166,5 +198,160 @@ class SalesController extends Controller
             ], 500);
         }
     }
-   
+
+    public function edit($id)
+    {
+        // Fetch sale with its related sale items
+        $sale = Sale::with('items')->findOrFail($id);
+        $customers = Customer::all();
+    
+        return view('dashboard.sales.edit', compact('sale', 'customers'));
+    }
+    
+
+        /**
+         * Update an existing sale record.
+         *
+         * @param  \Illuminate\Http\Request  $request
+         * @param  int  $id
+         * @return \Illuminate\Http\Response
+         */
+    public function update(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'customer_id' => 'required|exists:customers,id',
+            'cart' => 'required|json',
+            'sub_total' => 'required|numeric|min:0',
+            'discount' => 'required|numeric|min:0',
+            'net_total' => 'required|numeric|min:0',
+            'paid_amount' => 'required|numeric|min:0',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $sale = Sale::findOrFail($id);
+            
+            // Parse cart items from JSON
+            $cartItems = json_decode($validated['cart'], true);
+            
+            if (empty($cartItems)) {
+                throw new \Exception('No items in cart');
+            }
+
+            // 1️⃣ Restore Stock for the Old Sale
+            foreach ($sale->items as $oldItem) {
+                $product = Product::find($oldItem->product_id);
+                if ($product) {
+                    $product->increment('quantity', $oldItem->quantity); // Add the old stock back
+                }
+            }
+
+            // 2️⃣ Remove Old Sale Items
+            $sale->items()->delete();
+
+            // 3️⃣ Update Sale Details
+            $sale->update([
+                'customer_id' => $validated['customer_id'],
+                'total_amount' => $validated['sub_total'],
+                'discount' => $validated['discount'],
+                'tax' => 0,  // Assuming no tax is being applied
+                'net_total' => $validated['net_total'],
+                'amount_paid' => $validated['paid_amount'],
+                'pending_amount' => max(0, $validated['net_total'] - $validated['paid_amount']),
+            ]);
+
+            // 4️⃣ Add New Items & Deduct Stock
+            $totalProfit = 0;
+            
+            foreach ($cartItems as $item) {
+                $product = Product::findOrFail($item['id']);
+
+                if ($product->quantity < $item['qty']) {
+                    throw new \Exception("Insufficient stock for product: {$product->name}");
+                }
+
+                $product->decrement('quantity', $item['qty']); // Deduct stock for the new sale
+                
+                // Calculate profit margin
+                $profitMargin = ($item['price'] - $product->purchase_price) * $item['qty'];
+                $totalProfit += $profitMargin;
+                
+                // Create sale item
+                $saleItem = new SaleItem([
+                    'product_id' => $item['id'],
+                    'company_id' => $product->company_id,
+                    'quantity' => $item['qty'],
+                    'price' => $item['price'],
+                    'discount' => $item['discount'],
+                    'profit_margin' => $profitMargin,
+                    'total' => ($item['qty'] * $item['price']) - $item['discount'],
+                ]);
+                
+                $sale->items()->save($saleItem);
+            }
+
+            // 5️⃣ Update Customer Account
+            $customerAccount = CustomerAccount::firstOrCreate(
+                ['customer_id' => $validated['customer_id']],
+                ['total_purchases' => 0, 'total_paid' => 0, 'pending_balance' => 0, 'last_payment_date' => null]
+            );
+            
+            // Calculate the difference between old and new values
+            $purchaseDifference = $validated['net_total'] - $sale->getOriginal('net_total');
+            $paidDifference = $validated['paid_amount'] - $sale->getOriginal('amount_paid');
+            
+            // Update customer account
+            $customerAccount->increment('total_purchases', $purchaseDifference);
+            $customerAccount->increment('total_paid', $paidDifference);
+            $customerAccount->increment('pending_balance', $purchaseDifference - $paidDifference);
+            $customerAccount->update(['last_payment_date' => now()]);
+
+            // 6️⃣ Update Payment Record
+            if ($validated['paid_amount'] > 0) {
+                $payment = Payment::where('sale_id', $id)->first();
+                
+                if ($payment) {
+                    $payment->update([
+                        'amount_paid' => $validated['paid_amount'],
+                        'payment_date' => now(),
+                    ]);
+                } else {
+                    Payment::create([
+                        'customer_id' => $validated['customer_id'],
+                        'sale_id' => $id,
+                        'amount_paid' => $validated['paid_amount'],
+                        'payment_type' => 'Cash',
+                        'payment_date' => now()
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Invoice updated successfully',
+                'sale' => $sale->fresh(['items', 'customer']),
+            ]);
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json([
+                'message' => 'Failed to update invoice',
+                'details' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function searchProducts(Request $request)
+    {
+        $query = $request->get('query');
+        $products = Product::where('name', 'like', "%{$query}%")
+            ->with('company')
+            ->get();
+            
+        // For debugging - log raw products
+        \Log::info('Raw product search results:', ['products' => $products->toArray()]);
+            
+        return response()->json($products);
+    }
 }

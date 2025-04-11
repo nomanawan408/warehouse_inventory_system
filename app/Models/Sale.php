@@ -31,4 +31,9 @@ class Sale extends Model
         return $this->hasMany(SaleItem::class);
     }
 
+    // Define the relationship with SaleItem
+    public function items()
+    {
+        return $this->hasMany(SaleItem::class);
+    }
 }

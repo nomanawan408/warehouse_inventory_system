@@ -378,10 +378,93 @@
     </div>
 </div>
 
+<!-- Chart Containers Section -->
+<div class="container my-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="dashboard-container">
+                <div class="dashboard-header">
+                    <h4 class="dashboard-title">Performance Analytics</h4>
+                </div>
+                
+                <!-- Charts Row -->
+                <div class="row mb-4">
+                    <!-- Sales vs Profit Chart -->
+                    <div class="col-md-6">
+                        <div class="card insight-card h-100">
+                            <div class="card-header bg-white">
+                                Sales vs Profit Comparison
+                            </div>
+                            <div class="card-body">
+                                <div class="comparison-chart">
+                                    <canvas id="salesProfitChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Profit Trend Chart -->
+                    <div class="col-md-6">
+                        <div class="card insight-card h-100">
+                            <div class="card-header bg-white">
+                                Profit Trend Analysis
+                            </div>
+                            <div class="card-body">
+                                <div class="comparison-chart">
+                                    <canvas id="profitTrendChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Profit Ratio Chart -->
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card insight-card profit-card">
+                            <div class="insight-header">
+                                Profit-to-Sales Ratio
+                            </div>
+                            <div class="insight-body">
+                                <div class="comparison-chart">
+                                    <canvas id="profitRatioChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Include Required Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/moment/moment.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Sample data for charts
+    const monthlySales = [12500, 15000, 17500, 16000, 18000, 20000];
+    const monthlyProfits = [4500, 5200, 6000, 5500, 6200, 7000];
+    const monthlyProfitRatios = [0.36, 0.35, 0.34, 0.34, 0.34, 0.35];
+    
+    // Initialize date range picker
+    $(function() {
+        $('#dateRange').daterangepicker({
+            opens: 'left',
+            startDate: moment().subtract(29, 'days'),
+            endDate: moment(),
+            ranges: {
+               'Today': [moment(), moment()],
+               'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+               'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+               'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+               'This Month': [moment().startOf('month'), moment().endOf('month')],
+               'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            }
+        });
+    });
+</script>
 <script src="{{ asset('js/report-charts.js') }}"></script>
 <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
 @endsection
