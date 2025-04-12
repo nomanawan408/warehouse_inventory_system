@@ -186,8 +186,8 @@
         .custom-toast {
             position: fixed;
             bottom: 20px;
-            right: 20px;
-            padding: 15px 25px;
+            left: 20px;
+            padding: 15px 20px;
             background: #fff;
             color: #333;
             border-radius: 8px;
@@ -195,12 +195,40 @@
             z-index: 9999;
             display: flex;
             align-items: center;
-            animation: slideIn 0.3s ease-out;
+            animation: slideInLeft 0.3s ease-out;
+            min-width: 250px;
+            max-width: 400px;
         }
         
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
+        .custom-toast span {
+            flex: 1;
+            margin: 0 10px;
+        }
+        
+        .custom-toast i {
+            font-size: 20px;
+            min-width: 24px;
+            text-align: center;
+        }
+        
+        .custom-toast .btn-close {
+            font-size: 12px;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+        }
+        
+        .custom-toast .btn-close:hover {
+            opacity: 1;
+        }
+        
+        @keyframes slideInLeft {
+            from { transform: translateX(-100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes slideOutLeft {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(-100%); opacity: 0; }
         }
         
         .toast-success {
@@ -213,11 +241,6 @@
         
         .toast-info {
             border-left: 4px solid #17a2b8;
-        }
-        
-        .custom-toast i {
-            margin-right: 10px;
-            font-size: 20px;
         }
         
         /* Responsive adjustments */
@@ -324,7 +347,7 @@
                 <div class="container-box">
                     <h5><strong>INVENTORY</strong></h5>
 
-                    <button class="btn btn-primary w-100 mb-2">VIEW REPORTS</button>
+                    <!-- <button class="btn btn-primary w-100 mb-2">VIEW REPORTS</button> -->
                     
                     <div class="customer-select-container mb-3">
                         <input type="text" class="form-control customer-search-input" id="customer-search" placeholder="Search customer by name or phone...">
@@ -374,11 +397,12 @@
                         </div>
                     </div>
                     <div class="d-grid gap-2 mt-4">
+                        
+                        <button class="btn btn-lg btn-success btn-action shadow-lg" id="checkout-btn">
+                            <i class="fas fa-check-circle me-2"></i>Complete Sale
+                        </button>
                         <button class="btn btn-secondary btn-action" id="reset-cart">
                             <i class="fas fa-trash me-2"></i>Reset Cart
-                        </button>
-                        <button class="btn btn-success btn-action" id="checkout-btn">
-                            <i class="fas fa-check-circle me-2"></i>Complete Sale
                         </button>
                     </div>
                 </div>
@@ -410,13 +434,22 @@
                     <div class="custom-toast toast-${type}">
                         ${icon}
                         <span>${message}</span>
+                        <button type="button" class="btn-close ms-3" aria-label="Close"></button>
                     </div>
                 `);
                 
                 // Add to body and remove after delay
                 $('body').append(toast);
+                
+                // Add click handler to close button
+                toast.find('.btn-close').on('click', function() {
+                    toast.css('animation', 'slideOutLeft 0.3s forwards');
+                    setTimeout(() => toast.remove(), 300);
+                });
+                
+                // Auto-dismiss after delay
                 setTimeout(() => {
-                    toast.css('animation', 'slideOut 0.3s forwards');
+                    toast.css('animation', 'slideOutLeft 0.3s forwards');
                     setTimeout(() => toast.remove(), 300);
                 }, 3000);
             }
@@ -545,10 +578,20 @@
                     `);
                 } else {
                     cart.forEach((item, index) => {
-                        let itemSubtotal = parseFloat(item.qty) * parseFloat(item.price);
+                        // Calculate item values with proper parsing
+                        let itemQty = parseInt(item.qty) || 1;
+                        let itemPrice = parseFloat(item.price) || 0;
                         let itemDiscount = parseFloat(item.discount || 0);
-                        let itemTotalDiscount = itemDiscount * parseFloat(item.qty);
+                        
+                        let itemSubtotal = itemQty * itemPrice;
+                        let itemTotalDiscount = itemDiscount * itemQty;
                         let itemTotal = itemSubtotal - itemTotalDiscount;
+                        
+                        // Ensure positive total
+                        if (itemTotal < 0) itemTotal = 0;
+                        
+                        // For debugging
+                        console.log('Item:', item.name, 'Price:', itemPrice, 'Discount:', itemDiscount, 'Total:', itemTotal);
                         
                         let row = `
                             <tr data-id="${item.id}" class="fade-in" style="animation-delay: ${index * 0.05}s">
@@ -556,9 +599,9 @@
                                 <td>${item.companyName || 'N/A'}</td>
                                 <td class="text-center">
                                     <input type="number" class="qty form-control form-control-sm mx-auto" 
-                                        value="${item.qty}" min="1" style="max-width: 70px;">
+                                        value="${itemQty}" min="1" style="max-width: 70px;">
                                 </td>
-                                <td class="text-end price">Rs. ${parseFloat(item.price).toFixed(2)}</td>
+                                <td class="text-end price">Rs. ${itemPrice.toFixed(2)}</td>
                                 <td>
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text">Rs.</span>
@@ -649,14 +692,18 @@
                 let row = $(this).closest('tr');
                 let productId = row.data('id');
                 let qty = parseInt($(this).val()) || 1;
-                let price = parseFloat(row.find('.price').text());
+                
+                // Extract price value by removing the currency symbol
+                let priceText = row.find('.price').text().replace('Rs.', '').trim();
+                let price = parseFloat(priceText) || 0;
+                
                 let discount = parseFloat(row.find('.discount').val()) || 0;
                 
                 let itemSubtotal = qty * price;
                 let itemTotalDiscount = discount * qty;
                 let itemTotal = itemSubtotal - itemTotalDiscount;
                 
-                row.find('.total').text(itemTotal.toFixed(2));
+                row.find('.total').text(`Rs. ${itemTotal.toFixed(2)}`);
                 updateSession(productId, qty, discount);
             });
 
@@ -665,14 +712,18 @@
                 let row = $(this).closest('tr');
                 let productId = row.data('id');
                 let qty = parseInt(row.find('.qty').val()) || 1;
-                let price = parseFloat(row.find('.price').text());
+                
+                // Extract price value by removing the currency symbol
+                let priceText = row.find('.price').text().replace('Rs.', '').trim();
+                let price = parseFloat(priceText) || 0;
+                
                 let discount = parseFloat($(this).val()) || 0;
                 
                 let itemSubtotal = qty * price;
                 let itemTotalDiscount = discount * qty;
                 let itemTotal = itemSubtotal - itemTotalDiscount;
                 
-                row.find('.total').text(itemTotal.toFixed(2));
+                row.find('.total').text(`Rs. ${itemTotal.toFixed(2)}`);
                 updateSession(productId, qty, discount);
             });
 
