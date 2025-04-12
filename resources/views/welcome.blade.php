@@ -464,6 +464,7 @@
                 $.ajax({
                     url: "/products/all",
                     type: "GET",
+                    cache: false, // Disable caching to always get fresh data
                     success: function(data) {
                         allProducts = data;
                         console.log('Preloaded products:', allProducts.length);
@@ -497,7 +498,7 @@
                     $('#search-results').show();
                 } else {
                     // If products haven't loaded yet, show loading message
-                    $('#search-results').html('<li class="p-3 text-center"><div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div> Loading products...</li>');
+                    $('#search-results').html('<li class="p-3 text-center text-muted small">Loading products...</li>');
                     $('#search-results').show();
                     // Attempt to load products
                     fetchAllProducts();
@@ -554,7 +555,7 @@
                         const inStock = product.quantity > 0;
                         const badgeClass = inStock ? 'bg-success' : 'bg-danger';
                         const stockText = inStock ? `${product.quantity} in stock` : 'Out of stock';
-                        const disabledClass = inStock ? '' : 'opacity-50';
+                        const disabledClass = inStock ? '' : 'opacity-50 pe-none'; // pe-none disables pointer events
                         const companyName = product.company_name || (product.company ? product.company.name : 'No company');
                         
                         results += `
@@ -562,6 +563,7 @@
                             data-id="${product.id}" 
                             data-name="${product.name}" 
                             data-sale_price="${product.sale_price}"
+                            data-quantity="${product.quantity}"
                             data-company_name="${companyName}">
                             
                             <div>
@@ -613,21 +615,35 @@
                 let productId = $(this).data('id');
                 let productName = $(this).data('name');
                 let productPrice = $(this).data('sale_price');
-                let companyName = $(this).data('company_name'); // Get the company name
+                let productQuantity = parseInt($(this).data('quantity') || 0);
+                let companyName = $(this).data('company_name');
+                
+                // Prevent adding out-of-stock items
+                if (productQuantity <= 0) {
+                    showToast(`Cannot add ${productName} - Out of stock`, "error");
+                    return;
+                }
 
-                addToCart(productId, productName, productPrice, companyName);
+                addToCart(productId, productName, productPrice, companyName, productQuantity);
                 $('#search').val(''); // Clear search input
                 $('#search-results').html(''); // Clear search results
                 $('#search-results').hide();
             });
 
             // Function to add product to the cart and store in session
-            function addToCart(id, name, price, companyName) {
+            function addToCart(id, name, price, companyName, quantity) {
                 let cart = JSON.parse(localStorage.getItem('cart')) || [];
                 let existingProduct = cart.find(item => item.id === id);
 
                 if (existingProduct) {
+                    // Check if adding one more would exceed stock
+                    if (existingProduct.qty + 1 > quantity) {
+                        showToast(`Cannot add more ${name} - Only ${quantity} in stock`, "error");
+                        return;
+                    }
+                    
                     existingProduct.qty += 1;
+                    showToast(`Added another ${name} to cart`, "success");
                 } else {
                     cart.push({
                         id,
@@ -635,8 +651,10 @@
                         price,
                         companyName,
                         qty: 1,
-                        discount: 0
+                        discount: 0,
+                        stockQuantity: quantity // Store stock quantity for validation
                     });
+                    showToast(`Added ${name} to cart`, "success");
                 }
 
                 localStorage.setItem('cart', JSON.stringify(cart)); // Save cart to session
@@ -671,6 +689,7 @@
                         let itemQty = parseInt(item.qty) || 1;
                         let itemPrice = parseFloat(item.price) || 0;
                         let itemDiscount = parseFloat(item.discount || 0);
+                        let stockLimit = parseInt(item.stockQuantity) || 0;
                         
                         let itemSubtotal = itemQty * itemPrice;
                         let itemTotalDiscount = itemDiscount * itemQty;
@@ -680,15 +699,20 @@
                         if (itemTotal < 0) itemTotal = 0;
                         
                         // For debugging
-                        console.log('Item:', item.name, 'Price:', itemPrice, 'Discount:', itemDiscount, 'Total:', itemTotal);
+                        console.log('Item:', item.name, 'Price:', itemPrice, 'Discount:', itemDiscount, 'Total:', itemTotal, 'Stock:', stockLimit);
                         
                         let row = `
                             <tr data-id="${item.id}" class="fade-in" style="animation-delay: ${index * 0.05}s">
                                 <td>${item.name}</td>
                                 <td>${item.companyName || 'N/A'}</td>
                                 <td class="text-center">
-                                    <input type="number" class="qty form-control form-control-sm mx-auto" 
-                                        value="${itemQty}" min="1" style="max-width: 70px;">
+                                    <input type="number" 
+                                        class="qty form-control form-control-sm mx-auto" 
+                                        value="${itemQty}" 
+                                        min="1" 
+                                        max="${stockLimit}"
+                                        data-stock="${stockLimit}" 
+                                        style="max-width: 70px;">
                                 </td>
                                 <td class="text-end price">Rs. ${itemPrice.toFixed(2)}</td>
                                 <td>
@@ -781,6 +805,23 @@
                 let row = $(this).closest('tr');
                 let productId = row.data('id');
                 let qty = parseInt($(this).val()) || 1;
+                
+                // Get the stock limit
+                let stockLimit = parseInt($(this).attr('data-stock')) || 0;
+                
+                // Enforce minimum quantity
+                if (qty < 1) {
+                    qty = 1;
+                    $(this).val(1);
+                    showToast("Quantity cannot be less than 1", "error");
+                }
+                
+                // Enforce stock limit
+                if (qty > stockLimit) {
+                    qty = stockLimit;
+                    $(this).val(stockLimit);
+                    showToast(`Maximum quantity available is ${stockLimit}`, "error");
+                }
                 
                 // Extract price value by removing the currency symbol
                 let priceText = row.find('.price').text().replace('Rs.', '').trim();
@@ -908,6 +949,8 @@
                         // Show success message with animated icons
                         $('#processing').html(`
                             <div class="alert alert-success border-0 shadow">
+                                <button type="button" class="btn-close position-absolute" style="top: 10px; right: 10px;" 
+                                    onclick="$('#processing').html('')"></button>
                                 <div class="text-center mb-3">
                                     <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
                                     <h4>Sale Completed Successfully!</h4>
@@ -939,6 +982,9 @@
                         $('#checkout-btn').prop('disabled', false).html(`
                             <i class="fas fa-check-circle me-2"></i>Complete Sale
                         `);
+                        
+                        // Refresh product data to show updated stock quantities
+                        refreshProductData();
                     },
                     error: function(xhr) {
                         const errorMsg = xhr.responseJSON?.message || 'Error processing sale. Please try again.';
@@ -952,9 +998,24 @@
                         $('#checkout-btn').prop('disabled', false).html(`
                             <i class="fas fa-check-circle me-2"></i>Complete Sale
                         `);
+                        
+                        // Refresh product data
+                        refreshProductData();
                     }
                 });
             });
+
+            // Clear products cache and reload when order is completed
+            function refreshProductData() {
+                // Clear the cached products
+                allProducts = [];
+                
+                // Show loading message
+                showToast("Refreshing inventory data...", "info");
+                
+                // Fetch fresh data
+                fetchAllProducts();
+            }
 
             // Customer search functionality
             const customers = @json($customers);
