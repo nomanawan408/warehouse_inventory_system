@@ -109,8 +109,25 @@ Route::middleware('auth')->group(function () {
 
         return response()->json($results);
     });
-
-
+    
+    Route::get('/products/all', function (Request $request) {
+        $products = Product::with('company:id,name')
+            ->get(['id', 'name', 'sale_price', 'quantity', 'company_id']);
+            
+        // Map products to include company_name in the response
+        $results = collect($products)->map(function ($product) {
+            return [
+                'id' => $product->id,
+                'name' => $product->name,
+                'sale_price' => $product->sale_price,
+                'quantity' => $product->quantity,
+                'company_name' => $product->company->name ?? 'N/A',
+            ];
+        });
+        
+        return response()->json($results);
+    });
+    
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

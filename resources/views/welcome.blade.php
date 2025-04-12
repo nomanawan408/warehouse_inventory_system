@@ -318,22 +318,21 @@
                         <i class="search-icon fas fa-search"></i>
                         <input type="text" id="search" placeholder="Search for products..."
                             class="search-bar form-control">
+                        <div style="width: 100%;">
+                            <ul id="search-results"></ul>
+                        </div>
                     </div>
-                    <div style="width: 100%;">
-                        <ul id="search-results"></ul>
-                    </div>
-
                     <div class="cart-container">
                         <table class="cart-table table table-bordered table-hover table-striped mt-3" style="width: 100%">
                             <thead class="table-light">
                                 <tr>
                                     <th style="width: 30%">PRODUCT NAME</th>
-                                    <th style="width: 30%">COMPANY NAME</th>
+                                    <th style="width: 16%">COMPANY</th>
                                     <th style="width: 10%" class="text-center">QTY</th>
-                                    <th style="width: 10%" class="text-center">PRICE</th>
-                                    <th style="width: 15%" class="text-center">Discount</th>
-                                    <th style="width: 15%" class="text-center">Total</th>
-                                    <th style="width: 10%" class="text-center">Action</th>
+                                    <th style="width: 12%" class="text-center">PRICE</th>
+                                    <th style="width: 12%" class="text-center">DISCOUNT</th>
+                                    <th style="width: 12%" class="text-center">TOTAL</th>
+                                    <th style="width: 10%" class="text-center">ACTION</th>
                                 </tr>
                             </thead>
                             <tbody style="overflow-y: auto; max-height: 400px;">
@@ -457,61 +456,151 @@
             // Load cart from localStorage on page load
             loadCartFromSession();
 
-            // Live search event
-            $('#search').on('keyup', function() {
-                let query = $(this).val();
-
-                if (query.length > 1) {
-                    $('#search-results').show();
-                    $.ajax({
-                        url: "/search",
-                        type: "GET",
-                        data: {
-                            'query': query
-                        },
-                        success: function(data) {
-                            let results = "";
-                            
-                            if (data.length === 0) {
-                                results = `<li class="p-3 text-center text-muted">No products found</li>`;
-                            } else {
-                                data.forEach(product => {
-                                    const inStock = product.quantity > 0;
-                                    const badgeClass = inStock ? 'bg-success' : 'bg-danger';
-                                    const stockText = inStock ? `${product.quantity} in stock` : 'Out of stock';
-                                    const disabledClass = inStock ? '' : 'opacity-50';
-                                    
-                                    results += `
-                                    <li class="list-group-item d-flex justify-content-between align-items-center ${disabledClass}" 
-                                        data-id="${product.id}" 
-                                        data-name="${product.name}" 
-                                        data-sale_price="${product.sale_price}"
-                                        data-company_name="${product.company_name || product.company?.name || ''}">
-                                        
-                                        <div>
-                                            <div class="product-name">${product.name}</div>
-                                            <small class="text-muted">${product.company_name || product.company?.name || 'No company'}</small>
-                                        </div>
-                                        <div class="d-flex align-items-center">
-                                            <span class="badge ${badgeClass} rounded-pill me-3">${stockText}</span>
-                                            <span class="product-price">Rs. ${parseFloat(product.sale_price).toFixed(2)}</span>
-                                        </div>
-                                    </li>`;
-                                });
-                            }
-                            
-                            $('#search-results').html(results);
-                        },
-                        error: function(error) {
-                            console.error("Error searching products:", error);
-                            showToast("Error searching products. Please try again.", "error");
-                            $('#search-results').html('<li class="p-3 text-center text-danger">Error searching products</li>');
-                        }
-                    });
-                } else {
+            // Live search event with preloaded products
+            let allProducts = []; // Will store all products
+            
+            // Fetch all products on page load
+            function fetchAllProducts() {
+                $.ajax({
+                    url: "/products/all",
+                    type: "GET",
+                    success: function(data) {
+                        allProducts = data;
+                        console.log('Preloaded products:', allProducts.length);
+                    },
+                    error: function(error) {
+                        console.error("Error loading products:", error);
+                        showToast("Failed to load products. Please refresh the page.", "error");
+                    }
+                });
+            }
+            
+            // Load all products when page loads
+            fetchAllProducts();
+            
+            // Close search results when clicking outside
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('.product-search-container').length) {
                     $('#search-results').hide();
                 }
             });
+            
+            // Show all products when search gets focus
+            $('#search').on('focus', function() {
+                if (allProducts.length > 0) {
+                    if ($(this).val().length === 0) {
+                        displayProducts(allProducts);
+                    } else {
+                        const query = $(this).val().toLowerCase();
+                        filterAndDisplayProducts(query);
+                    }
+                    $('#search-results').show();
+                } else {
+                    // If products haven't loaded yet, show loading message
+                    $('#search-results').html('<li class="p-3 text-center"><div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div> Loading products...</li>');
+                    $('#search-results').show();
+                    // Attempt to load products
+                    fetchAllProducts();
+                }
+            });
+            
+            // Handle search input
+            $('#search').on('input', function() {
+                const query = $(this).val().toLowerCase();
+                
+                if (query.length === 0 && allProducts.length > 0) {
+                    // Show all products when search is empty
+                    displayProducts(allProducts);
+                } else if (query.length > 0) {
+                    // Filter products based on query
+                    filterAndDisplayProducts(query);
+                }
+                
+                $('#search-results').show();
+            });
+            
+            // Filter products based on search query
+            function filterAndDisplayProducts(query) {
+                if (allProducts.length === 0) {
+                    // Fall back to API if preloaded products aren't available
+                    searchProductsAPI(query);
+                    return;
+                }
+                
+                // Filter locally for faster response
+                const filteredProducts = allProducts.filter(product => 
+                    product.name.toLowerCase().includes(query) || 
+                    (product.company && product.company.name && 
+                     product.company.name.toLowerCase().includes(query))
+                );
+                
+                displayProducts(filteredProducts);
+            }
+            
+            // Display products in search results
+            function displayProducts(products) {
+                let results = "";
+                
+                if (products.length === 0) {
+                    results = `<li class="p-3 text-center text-muted">No products found</li>`;
+                } else {
+                    // Sort products by name for easier scanning
+                    products.sort((a, b) => a.name.localeCompare(b.name));
+                    
+                    // Limit to first 20 products to avoid overwhelming the UI
+                    const displayProducts = products.slice(0, 20);
+                    
+                    displayProducts.forEach(product => {
+                        const inStock = product.quantity > 0;
+                        const badgeClass = inStock ? 'bg-success' : 'bg-danger';
+                        const stockText = inStock ? `${product.quantity} in stock` : 'Out of stock';
+                        const disabledClass = inStock ? '' : 'opacity-50';
+                        const companyName = product.company_name || (product.company ? product.company.name : 'No company');
+                        
+                        results += `
+                        <li class="list-group-item d-flex justify-content-between align-items-center ${disabledClass}" 
+                            data-id="${product.id}" 
+                            data-name="${product.name}" 
+                            data-sale_price="${product.sale_price}"
+                            data-company_name="${companyName}">
+                            
+                            <div>
+                                <div class="product-name">${product.name}</div>
+                                <small class="text-muted">${companyName}</small>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <span class="badge ${badgeClass} rounded-pill me-3">${stockText}</span>
+                                <span class="product-price">Rs. ${parseFloat(product.sale_price).toFixed(2)}</span>
+                            </div>
+                        </li>`;
+                    });
+                    
+                    if (products.length > 20) {
+                        results += `<li class="p-2 text-center text-muted small">Showing 20 of ${products.length} products. Type to refine search.</li>`;
+                    }
+                }
+                
+                $('#search-results').html(results);
+            }
+            
+            // Fall back to API search if needed
+            function searchProductsAPI(query) {
+                $.ajax({
+                    url: "/search",
+                    type: "GET",
+                    data: {
+                        'query': query
+                    },
+                    success: function(data) {
+                        displayProducts(data);
+                    },
+                    error: function(error) {
+                        console.error("Error searching products:", error);
+                        showToast("Error searching products. Please try again.", "error");
+                        $('#search-results').html('<li class="p-3 text-center text-danger">Error searching products</li>');
+                    }
+                });
+            }
 
             // Reset cart
             $('#reset-cart').on('click', function() {
@@ -611,8 +700,8 @@
                                 </td>
                                 <td class="text-end total">Rs. ${itemTotal.toFixed(2)}</td>
                                 <td class="text-center">
-                                    <button class="btn btn-danger btn-sm remove-btn">
-                                        <i class="fas fa-times"></i>
+                                    <button class="btn btn-danger btn-sm remove-btn" title="Remove" style="transition: all 0.3s ease; transform: none;">
+                                        <i class="ti ti-trash" style="filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.2));"></i>
                                     </button>
                                 </td>
                             </tr>`;
@@ -728,12 +817,23 @@
             });
 
             // Function to remove an item from cart
-            $(document).on('click', '.remove', function() {
+            $(document).on('click', '.remove-btn', function() {
                 let productId = $(this).closest('tr').data('id');
                 let cart = JSON.parse(localStorage.getItem('cart')) || [];
+                
+                // Find the product name for toast notification
+                let productName = $(this).closest('tr').find('td:first-child').text();
+                
+                // Filter out the product with the matching ID
                 cart = cart.filter(item => item.id !== productId);
 
+                // Save updated cart back to storage
                 localStorage.setItem('cart', JSON.stringify(cart));
+                
+                // Show feedback
+                showToast(`Removed ${productName} from cart`, "info");
+                
+                // Update UI
                 renderCart();
             });
 
