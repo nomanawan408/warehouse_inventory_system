@@ -1070,7 +1070,7 @@
                 let html = '';
                 let filteredCustomers = customers.filter(c => 
                     c.name.toLowerCase().includes(query) || 
-                    (c.phone && c.phone.includes(query))
+                    (c.phone_no && c.phone_no.includes(query))
                 );
                 
                 if (filteredCustomers.length === 0) {
@@ -1089,7 +1089,7 @@
                 return `
                     <div class="customer-item" data-id="${customer.id}">
                         <div class="customer-name">${customer.name}</div>
-                        <div class="customer-phone">${customer.phone || 'No phone'}</div>
+                        <div class="customer-phone">${customer.phone_no || 'No phone'}</div>
                     </div>
                 `;
             }

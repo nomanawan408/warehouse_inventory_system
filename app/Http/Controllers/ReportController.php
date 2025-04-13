@@ -3,15 +3,16 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 use App\Models\Sale;
-use App\Models\Purchase;
+use App\Models\SaleItem;
 use App\Models\Product;
+use App\Models\Purchase;
 use App\Models\Customer;
 use App\Models\Company;
-use App\Models\SaleItem;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Http\JsonResponse;
+
 
 class ReportController extends Controller
 {
@@ -57,7 +58,7 @@ class ReportController extends Controller
         // Top selling products
         $topProducts = DB::table('sale_items')
             ->join('products', 'sale_items.product_id', '=', 'products.id')
-            ->select('products.name', DB::raw('SUM(sale_items.quantity) as total_quantity'), DB::raw('SUM(sale_items.profit_margin) as total_profit'))
+            ->select('products.name', DB::raw('SUM(sale_items.quantity) as total_quantity'), DB::raw('SUM(sale_items.total) as total_amount'), DB::raw('SUM(sale_items.profit_margin) as total_profit'))
             ->groupBy('products.id', 'products.name')
             ->orderByDesc('total_quantity')
             ->limit(5)
@@ -100,15 +101,25 @@ class ReportController extends Controller
             ->orderBy('date')
             ->get();
 
-        return view('report.index', compact(
-            'dailyStats',
-            'weeklyStats',
-            'monthlyStats',
-            'topProducts',
-            'mostProfitableProducts',
-            'lowStockProducts',
-            'salesTrend',
-            'profitTrend'
+        // Get customers and companies for report filters
+        $customers = Customer::orderBy('name')->get();
+        $companies = Company::orderBy('name')->get();
+        
+        // Get total products count for dashboard stat
+        $productsCount = Product::count();
+
+        return view('dashboard.reports.index', compact(
+            'dailyStats', 
+            'weeklyStats', 
+            'monthlyStats', 
+            'topProducts', 
+            'mostProfitableProducts', 
+            'lowStockProducts', 
+            'salesTrend', 
+            'profitTrend',
+            'customers',
+            'companies',
+            'productsCount'
         ));
     }
 
@@ -171,7 +182,7 @@ class ReportController extends Controller
             ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
             ->join('products', 'sale_items.product_id', '=', 'products.id')
             ->whereBetween('sales.created_at', [$startDate, $endDate])
-            ->select('products.name', DB::raw('SUM(sale_items.quantity) as total_quantity'), DB::raw('SUM(sale_items.profit_margin) as total_profit'))
+            ->select('products.name', DB::raw('SUM(sale_items.quantity) as total_quantity'), DB::raw('SUM(sale_items.total) as total_amount'), DB::raw('SUM(sale_items.profit_margin) as total_profit'))
             ->groupBy('products.id', 'products.name')
             ->orderByDesc('total_quantity')
             ->limit(5)
@@ -227,4 +238,344 @@ class ReportController extends Controller
             'profitTrend' => $profitTrend
         ]);
     }
+
+    /**
+     * Get customer report based on date range
+     */
+    public function customerReport(Request $request)
+    {
+        $validated = $request->validate([
+            'customer_id' => 'required|exists:customers,id',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+        ]);
+
+        $customerId = $validated['customer_id'];
+        $startDate = Carbon::parse($validated['start_date'])->startOfDay();
+        $endDate = Carbon::parse($validated['end_date'])->endOfDay();
+
+        $customer = Customer::findOrFail($customerId);
+        
+        // Get all sales for this customer in the date range
+        $sales = Sale::where('customer_id', $customerId)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->with(['items.product'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+            
+        // Calculate summary statistics
+        $totalSales = $sales->count();
+        $totalAmount = $sales->sum('total_amount');
+        $totalDiscount = $sales->sum('discount');
+        $totalNetAmount = $sales->sum('net_total');
+        $totalPending = $sales->sum('pending_amount');
+        
+        // Get most purchased products for this customer
+        $topProducts = DB::table('sale_items')
+            ->join('products', 'sale_items.product_id', '=', 'products.id')
+            ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
+            ->where('sales.customer_id', $customerId)
+            ->whereBetween('sales.created_at', [$startDate, $endDate])
+            ->select(
+                'products.id', 
+                'products.name', 
+                DB::raw('SUM(sale_items.quantity) as total_quantity'),
+                DB::raw('SUM(sale_items.total) as total_amount')
+            )
+            ->groupBy('products.id', 'products.name')
+            ->orderByDesc('total_quantity')
+            ->limit(10)
+            ->get();
+            
+        // Monthly trend for this customer
+        $monthlyTrend = DB::table('sales')
+            ->join('sale_items', 'sales.id', '=', 'sale_items.sale_id')
+            ->where('sales.customer_id', $customerId)
+            ->whereBetween('sales.created_at', [$startDate->copy()->startOfYear(), $endDate])
+            ->select(
+                DB::raw('DATE_FORMAT(sales.created_at, "%b %Y") as month'),
+                DB::raw('SUM(sale_items.total) as total_amount'),
+                DB::raw('COUNT(DISTINCT sales.id) as sale_count')
+            )
+            ->groupBy('month')
+            ->orderBy(DB::raw('MIN(sales.created_at)'))
+            ->get();
+            
+        return view('dashboard.reports.customer_report', compact(
+            'customer',
+            'sales',
+            'totalSales',
+            'totalAmount',
+            'totalDiscount',
+            'totalNetAmount',
+            'totalPending',
+            'topProducts',
+            'monthlyTrend',
+            'startDate',
+            'endDate'
+        ));
+    }
+    
+    /**
+     * Get company report based on date range
+     */
+    public function companyReport(Request $request)
+    {
+        $validated = $request->validate([
+            'company_id' => 'required|exists:companies,id',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+        ]);
+
+        $companyId = $validated['company_id'];
+        $startDate = Carbon::parse($validated['start_date'])->startOfDay();
+        $endDate = Carbon::parse($validated['end_date'])->endOfDay();
+
+        $company = Company::findOrFail($companyId);
+        
+        // Get all products from this company
+        $products = Product::where('company_id', $companyId)->get();
+        $productIds = $products->pluck('id')->toArray();
+        
+        // Get sales items for this company's products
+        $salesData = SaleItem::whereIn('product_id', $productIds)
+            ->whereHas('sale', function($query) use ($startDate, $endDate) {
+                $query->whereBetween('created_at', [$startDate, $endDate]);
+            })
+            ->with(['sale', 'product'])
+            ->get();
+            
+        // Calculate summary statistics
+        $totalQuantitySold = $salesData->sum('quantity');
+        $totalRevenue = $salesData->sum('total');
+        $totalProfit = $salesData->sum('profit_margin');
+        
+        // Get top selling products for this company
+        $topProducts = DB::table('sale_items')
+            ->join('products', 'sale_items.product_id', '=', 'products.id')
+            ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
+            ->whereIn('sale_items.product_id', $productIds)
+            ->whereBetween('sales.created_at', [$startDate, $endDate])
+            ->select(
+                'products.id', 
+                'products.name', 
+                DB::raw('SUM(sale_items.quantity) as total_quantity'),
+                DB::raw('SUM(sale_items.total) as total_amount'),
+                DB::raw('SUM(sale_items.profit_margin) as total_profit')
+            )
+            ->groupBy('products.id', 'products.name')
+            ->orderByDesc('total_quantity')
+            ->limit(10)
+            ->get();
+            
+        // Monthly trend for this company
+        $monthlyTrend = DB::table('sale_items')
+            ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
+            ->join('products', 'sale_items.product_id', '=', 'products.id')
+            ->whereIn('products.id', $productIds)
+            ->whereBetween('sales.created_at', [$startDate, $endDate])
+            ->select(
+                DB::raw('DATE_FORMAT(sales.created_at, "%Y-%m") as month'),
+                DB::raw('SUM(sale_items.total) as total_amount'),
+                DB::raw('SUM(sale_items.quantity) as total_quantity')
+            )
+            ->groupBy('month')
+            ->orderBy('month')
+            ->get();
+            
+        // Current inventory for this company
+        $currentInventory = Product::where('company_id', $companyId)
+            ->select('id', 'name', 'quantity', 'purchase_price', 'sale_price')
+            ->orderBy('name')
+            ->get();
+            
+        return view('dashboard.reports.company_report', compact(
+            'company',
+            'totalQuantitySold',
+            'totalRevenue',
+            'totalProfit',
+            'topProducts',
+            'monthlyTrend',
+            'currentInventory',
+            'startDate',
+            'endDate'
+        ));
+    }
+
+    /**
+     * Export customer report as print-friendly HTML
+     */
+    public function exportCustomerPdf(Request $request)
+    {
+        $customerId = $request->input('customer_id');
+        $startDate = $request->input('start_date') ? Carbon::parse($request->input('start_date'))->startOfDay() : Carbon::today()->startOfDay();
+        $endDate = $request->input('end_date') ? Carbon::parse($request->input('end_date'))->endOfDay() : Carbon::today()->endOfDay();
+        
+        $customer = Customer::findOrFail($customerId);
+        
+        // Get all sales for this customer within the date range
+        $sales = Sale::where('customer_id', $customerId)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->with(['items.product'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        // Calculate totals
+        $totalSales = $sales->count();
+        $totalAmount = $sales->sum('total_amount');
+        $totalDiscount = $sales->sum('discount_amount');
+        $totalNetAmount = $sales->sum('net_amount');
+        $totalPending = $sales->sum('pending_amount');
+        
+        // Get most purchased products
+        $mostPurchasedProducts = DB::table('sale_items')
+            ->join('products', 'sale_items.product_id', '=', 'products.id')
+            ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
+            ->where('sales.customer_id', $customerId)
+            ->whereBetween('sales.created_at', [$startDate, $endDate])
+            ->select(
+                'products.name',
+                DB::raw('SUM(sale_items.quantity) as total_quantity'),
+                DB::raw('SUM(sale_items.total) as total_amount')
+            )
+            ->groupBy('products.id', 'products.name')
+            ->orderByDesc('total_quantity')
+            ->limit(5)
+            ->get();
+        
+        // Monthly sales trend
+        $monthlyTrend = DB::table('sales')
+            ->join('sale_items', 'sales.id', '=', 'sale_items.sale_id')
+            ->where('sales.customer_id', $customerId)
+            ->whereBetween('sales.created_at', [$startDate->copy()->startOfYear(), $endDate])
+            ->select(
+                DB::raw('DATE_FORMAT(sales.created_at, "%b %Y") as month'),
+                DB::raw('SUM(sale_items.total) as total_amount'),
+                DB::raw('COUNT(DISTINCT sales.id) as sale_count')
+            )
+            ->groupBy('month')
+            ->orderBy(DB::raw('MIN(sales.created_at)'))
+            ->get();
+        
+        // Return a print-friendly HTML view
+        return view('dashboard.reports.print.customer_print', compact(
+            'customer', 
+            'sales', 
+            'startDate', 
+            'endDate', 
+            'totalSales', 
+            'totalAmount', 
+            'totalDiscount', 
+            'totalNetAmount', 
+            'totalPending',
+            'mostPurchasedProducts',
+            'monthlyTrend'
+        ));
+    }
+    
+    /**
+     * Export company report as print-friendly HTML
+     */
+    public function exportCompanyPdf(Request $request)
+    {
+        $companyId = $request->input('company_id');
+        $startDate = $request->input('start_date') ? Carbon::parse($request->input('start_date'))->startOfDay() : Carbon::today()->startOfDay();
+        $endDate = $request->input('end_date') ? Carbon::parse($request->input('end_date'))->endOfDay() : Carbon::today()->endOfDay();
+        
+        $company = Company::findOrFail($companyId);
+        
+        // Get all products from this company
+        $productIds = Product::where('company_id', $companyId)->pluck('id')->toArray();
+        
+        // Calculate total quantity sold, revenue and profit
+        $salesData = SaleItem::whereIn('product_id', $productIds)
+            ->whereHas('sale', function($query) use ($startDate, $endDate) {
+                $query->whereBetween('created_at', [$startDate, $endDate]);
+            })
+            ->with(['sale', 'product'])
+            ->get();
+            
+        $totalQuantitySold = $salesData->sum('quantity');
+        $totalRevenue = $salesData->sum('total');
+        $totalProfit = $salesData->sum('profit_margin');
+        $profitMargin = $totalRevenue > 0 ? ($totalProfit / $totalRevenue) * 100 : 0;
+        
+        // Top selling products
+        $topSellingProducts = collect($productIds)->isEmpty() ? collect([]) : DB::table('sale_items')
+            ->join('products', 'sale_items.product_id', '=', 'products.id')
+            ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
+            ->whereIn('sale_items.product_id', $productIds)
+            ->whereBetween('sales.created_at', [$startDate, $endDate])
+            ->select(
+                'products.name',
+                DB::raw('SUM(sale_items.quantity) as total_quantity'),
+                DB::raw('SUM(sale_items.total) as total_amount'),
+                DB::raw('SUM(sale_items.profit_margin) as total_profit')
+            )
+            ->groupBy('products.id', 'products.name')
+            ->orderByDesc('total_quantity')
+            ->limit(5)
+            ->get();
+        
+        // Monthly trend for this company
+        $monthlyTrend = DB::table('sale_items')
+            ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
+            ->join('products', 'sale_items.product_id', '=', 'products.id')
+            ->whereIn('products.id', $productIds)
+            ->whereBetween('sales.created_at', [$startDate, $endDate])
+            ->select(
+                DB::raw('DATE_FORMAT(sales.created_at, "%Y-%m") as month'),
+                DB::raw('SUM(sale_items.total) as total_amount'),
+                DB::raw('SUM(sale_items.quantity) as total_quantity')
+            )
+            ->groupBy('month')
+            ->orderBy('month')
+            ->get();
+        
+    // Current inventory for this company
+    $currentInventory = Product::where('company_id', $companyId)
+        ->select('id', 'name', 'quantity', 'purchase_price', 'sale_price')
+        ->orderBy('name')
+        ->get();
+        
+    // Get all purchases from this company
+    $purchases = Purchase::where('company_id', $companyId)
+        ->whereBetween('created_at', [$startDate, $endDate])
+        ->with(['transactions', 'transactions.transactionItems', 'transactions.transactionItems.product'])
+        ->orderBy('created_at', 'desc')
+        ->get();
+        
+    // Calculate purchase totals
+    $totalPurchases = $purchases->count();
+    $totalPurchaseAmount = $purchases->sum('total_amount');
+    $totalPurchasePaid = $purchases->sum('paid_amount');
+    $totalPurchasePending = $purchases->sum('pending_amount');
+        
+    // Calculate total inventory value
+    $totalInventoryValue = $currentInventory->sum(function($product) {
+        return $product->quantity * $product->purchase_price;
+    });
+    
+    $inventoryStatus = $currentInventory;
+    
+    return view('dashboard.reports.print.company_print', compact(
+        'company',
+        'startDate', 
+        'endDate', 
+        'totalQuantitySold', 
+        'totalRevenue', 
+        'totalProfit', 
+        'profitMargin',
+        'topSellingProducts',
+        'inventoryStatus',
+        'totalInventoryValue',
+        'purchases',
+        'totalPurchases',
+        'totalPurchaseAmount',
+        'totalPurchasePaid',
+        'totalPurchasePending'
+    ));
+}
+
+
 }

@@ -3,16 +3,19 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PurchaseItem extends Model
 {
-    //
     protected $fillable = [
         'company_transaction_id',
         'product_id',
         'quantity',
         'unit_price',
-        'total_amount'
+        'total_amount',
+        'previous_stock',
+        'current_stock',
+        'transaction_type'
     ];
 
     /**

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\Company;
 use App\Models\Payment;
-use App\Models\TransactionItem;
+use App\Models\PurchaseItem;
 
 class CompanyTransaction extends Model
 {
@@ -39,11 +39,11 @@ class CompanyTransaction extends Model
     }
 
     /**
-     * Get the transaction items for this transaction
+     * Get the purchase items for this transaction
      */
     public function transactionItems(): HasMany
     {
-        return $this->hasMany(TransactionItem::class);
+        return $this->hasMany(PurchaseItem::class, 'company_transaction_id');
     }
 
     /**

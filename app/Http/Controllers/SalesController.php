@@ -116,11 +116,16 @@ class SalesController extends Controller
                 
             $product->decrement('quantity', $item['qty']);
 
-            // Calculate profit margin (sale price - purchase price)
+            // Calculate regular profit margin (without considering discounts)
             $profit_margin = $item['price'] - $product->purchase_price;
             $profit_margin_total = $profit_margin * $item['qty'];
             
-            // Add Sale Item with profit margin
+            // Calculate profit after item-level discount
+            $total_before_discount = $item['qty'] * $item['price'];
+            $total_after_discount = $total_before_discount - $item['discount'];
+            $profit_after_discount = $total_after_discount - ($product->purchase_price * $item['qty']);
+            
+            // Create the sale item with both profit calculations
             SaleItem::create([
                 'sale_id'       => $sale->id,
                 'product_id'    => $item['id'],
@@ -128,8 +133,8 @@ class SalesController extends Controller
                 'quantity'      => $item['qty'],
                 'price'         => $item['price'],
                 'discount'      => $item['discount'],
-                'profit_margin' => $profit_margin_total,
-                'total'         => ($item['qty'] * $item['price']) - $item['discount'],
+                'profit_margin' => $profit_after_discount, // Store the accurate profit after discount
+                'total'         => $total_after_discount,
             ]);
 
             }
@@ -273,19 +278,28 @@ class SalesController extends Controller
 
                 $product->decrement('quantity', $item['qty']); // Deduct stock for the new sale
                 
-                // Calculate profit margin
-                $profitMargin = ($item['price'] - $product->purchase_price) * $item['qty'];
-                $totalProfit += $profitMargin;
+                // Calculate total before any discount
+                $totalBeforeDiscount = $item['qty'] * $item['price'];
                 
-                // Create sale item
+                // Calculate total after item-level discount
+                $totalAfterItemDiscount = $totalBeforeDiscount - $item['discount'];
+                
+                // Calculate the cost of the product
+                $productCost = $product->purchase_price * $item['qty'];
+                
+                // Calculate profit after item-level discount
+                $profitAfterDiscount = $totalAfterItemDiscount - $productCost;
+                $totalProfit += $profitAfterDiscount;
+                
+                // Create sale item with accurate profit calculation
                 $saleItem = new SaleItem([
                     'product_id' => $item['id'],
                     'company_id' => $product->company_id,
                     'quantity' => $item['qty'],
                     'price' => $item['price'],
                     'discount' => $item['discount'],
-                    'profit_margin' => $profitMargin,
-                    'total' => ($item['qty'] * $item['price']) - $item['discount'],
+                    'profit_margin' => $profitAfterDiscount, // Store profit after discount
+                    'total' => $totalAfterItemDiscount,
                 ]);
                 
                 $sale->items()->save($saleItem);

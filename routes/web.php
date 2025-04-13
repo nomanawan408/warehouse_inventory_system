@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\SalesController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ProfitReportController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\CompanyController;
@@ -22,6 +23,14 @@ Route::middleware('auth')->group(function () {
     // Reports Routes
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('/report/data', [ReportController::class, 'getData'])->name('reports.data');
+    Route::get('/reports/customer', [ReportController::class, 'customerReport'])->name('reports.customer');
+    Route::get('/reports/company', [ReportController::class, 'companyReport'])->name('reports.company');
+    Route::get('/reports/customer/pdf', [ReportController::class, 'exportCustomerPdf'])->name('reports.customer.pdf');
+    Route::get('/reports/company/pdf', [ReportController::class, 'exportCompanyPdf'])->name('reports.company.pdf');
+    
+    // Profit Reports Routes
+    Route::get('/reports/profit', [ProfitReportController::class, 'index'])->name('reports.profit');
+    Route::get('/reports/profit/print', [ProfitReportController::class, 'printReport'])->name('reports.profit.print');
 
     // Products Routes
     Route::get('/products', [ProductsController::class, 'index'])->name('products.index');
