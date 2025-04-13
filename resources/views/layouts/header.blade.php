@@ -1,5 +1,5 @@
 <!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark shadow-sm">
+<nav style="z-index: 999000 !important" class="navbar navbar-expand-lg navbar-dark shadow-sm">
     <div class="container">
         <a class="navbar-brand fw-bold" href="{{ url('/sales/create') }}">M.Traders</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -28,11 +28,11 @@
                 <li class="nav-item">
                     <a class="nav-link px-3 rounded-pill mx-1 transition" href="{{url('/companies')}}">Companies</a>
                 </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link px-3 rounded-pill mx-1 transition dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <li  class="nav-item dropdown">
+                    <a class="nav-link px-3 rounded-pill mx-1 transition dropdown-toggle" href="#" id="accountsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         Accounts
                     </a>
-                    <ul class="dropdown-menu p-2">
+                    <ul  class="dropdown-menu dropdown-menu-end p-2" aria-labelledby="accountsDropdown">
                         <li><a class="dropdown-item py-2" href="{{url('/accounts')}}">Customer Accounts</a></li>
                         <li><a class="dropdown-item py-2" href="{{ route('companies.accounts') }}">Company Accounts</a></li>
                     </ul>

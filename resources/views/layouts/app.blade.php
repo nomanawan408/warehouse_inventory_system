@@ -75,5 +75,23 @@
 
     @yield('scripts')
     @stack('scripts')
+    
+    <!-- Initialize Bootstrap components -->
+    <script>
+        $(document).ready(function() {
+            // Initialize all dropdowns
+            var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
+            var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
+                return new bootstrap.Dropdown(dropdownToggleEl);
+            });
+            
+            // For mobile view, ensure dropdowns work properly with touch events
+            $('.dropdown-toggle').on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                $(this).dropdown('toggle');
+            });
+        });
+    </script>
 </body>
 </html>
