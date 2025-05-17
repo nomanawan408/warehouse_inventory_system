@@ -19,7 +19,14 @@ class SalesController extends Controller
     public function print($id)
     {
         $sale = Sale::with(['customer', 'saleItems.product'])->findOrFail($id);
-        return view('dashboard.sales.print', compact('sale'));
+
+        // Previous Pending
+        $previousPending = CustomerAccount::where('customer_id', $sale->customer_id)
+            ->where('created_at', '<', $sale->created_at)
+            ->orderBy('created_at', 'desc')
+            ->value('pending_balance');
+
+        return view('dashboard.sales.print', compact('sale', 'previousPending'));
     }
     public function show($id)
     {

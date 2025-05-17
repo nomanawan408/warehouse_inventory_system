@@ -38,7 +38,7 @@
                             @foreach ($sales as $sale)
                                 <tr>
                                     <td># {{ str_pad($sale->id, 3, '0', STR_PAD_LEFT) }}</td>
-                                    <td>{{ $sale->customer->name }}</td>
+                                    <td>{{ $sale->customer ? $sale->customer->name : 'Deleted Customer' }}</td>
                                     <td>{{ $sale->total_amount }}</td>
                                     <td>{{ $sale->discount }}</td>
                                     <td>{{ $sale->net_total }}</td>

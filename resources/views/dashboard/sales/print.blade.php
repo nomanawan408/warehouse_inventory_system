@@ -132,6 +132,7 @@
         </tbody>
     </table>
 
+/*************  ✨ Windsurf Command 🌟  *************/
     <div class="totals">
         <table>
             <tr>
@@ -156,11 +157,19 @@
             </tr>
             @if($sale->customer->name != 'Counter sale')
             <tr>
+                <td><strong>Previous Pending:</strong></td>
+                <td align="right">{{ number_format($previousPending, 2) }}</td>
+                <td align="right">{{ number_format($sale->customer->account->pending_balance, 2) }}</td>
+            </tr>
+            <tr>
                 <td><strong>Total Pending:</strong></td>
+                <td align="right">{{ number_format($sale->pending_amount + $previousPending, 2) }}</td>
                 <td align="right">{{ number_format($sale->customer->account->pending_balance, 2) }}</td>
             </tr>
             @endif
         </table>
+    </div>
+/*******  ab571ed6-6b5f-4202-9743-59c557ea90aa  *******/
     </div>
 </body>
 </html>

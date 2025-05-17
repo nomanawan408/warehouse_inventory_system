@@ -266,7 +266,9 @@ class ProfitReportController extends Controller
             'revenueGrowth',
             'profitGrowth',
             'marginGrowth',
-            'salesGrowth'
+            'salesGrowth',
+            'profitData',
+            'prevProfitData'
         ));
     }
     

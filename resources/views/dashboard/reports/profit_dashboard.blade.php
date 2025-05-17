@@ -307,10 +307,21 @@
                             </div>
                         </div>
                         <div class="d-flex flex-wrap gap-2 mt-3">
-                            <a href="{{ route('reports.profit') }}?start_date={{ now()->subDays(7)->format('Y-m-d') }}&end_date={{ now()->format('Y-m-d') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">Last 7 Days</a>
-                            <a href="{{ route('reports.profit') }}?start_date={{ now()->subDays(30)->format('Y-m-d') }}&end_date={{ now()->format('Y-m-d') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">Last 30 Days</a>
-                            <a href="{{ route('reports.profit') }}?start_date={{ now()->subDays(90)->format('Y-m-d') }}&end_date={{ now()->format('Y-m-d') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">Last Quarter</a>
-                            <a href="{{ route('reports.profit') }}?start_date={{ now()->startOfYear()->format('Y-m-d') }}&end_date={{ now()->format('Y-m-d') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">Year to Date</a>
+                            <a href="{{ route('reports.profit') }}?start_date={{ now()->subDays(7)->format('Y-m-d') }}&end_date={{ now()->format('Y-m-d') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                <i class="fas fa-calendar-alt me-1"></i> Last 7 Days
+                            </a>
+                            <a href="{{ route('reports.profit') }}?start_date={{ now()->subDays(30)->format('Y-m-d') }}&end_date={{ now()->format('Y-m-d') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                <i class="fas fa-calendar-week me-1"></i> Last 30 Days
+                            </a>
+                            <a href="{{ route('reports.profit') }}?start_date={{ now()->subDays(90)->format('Y-m-d') }}&end_date={{ now()->format('Y-m-d') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                <i class="fas fa-calendar-check me-1"></i> Last Quarter
+                            </a>
+                            <a href="{{ route('reports.profit') }}?start_date={{ now()->startOfYear()->format('Y-m-d') }}&end_date={{ now()->format('Y-m-d') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                <i class="fas fa-calendar me-1"></i> Year to Date
+                            </a>
+                            <a href="{{ route('reports.profit') }}?start_date={{ now()->subYear()->format('Y-m-d') }}&end_date={{ now()->format('Y-m-d') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                <i class="fas fa-history me-1"></i> Last 12 Months
+                            </a>
                         </div>
                     </form>
                 </div>
@@ -386,15 +397,18 @@
                 
                 <!-- Profit After Discounts Card -->
                 <div class="col-md-6 col-xl-3">
-                    <div class="card border-left-warning shadow h-100">
+                    <div class="card border-left-danger shadow h-100">
                         <div class="card-body">
                             <div class="row no-gutters align-items-center">
                                 <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Discount Impact</div>
+                                    <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Discount Impact</div>
                                     <div class="h5 mb-0 font-weight-bold text-gray-800">Rs. {{ number_format(($profitData['discount_impact'] ?? 0), 2) }}</div>
+                                    <div class="small text-muted mt-1">
+                                        {{ number_format(($profitData['total_profit_before_discount'] ?? 0) > 0 ? (($profitData['discount_impact'] ?? 0) / ($profitData['total_profit_before_discount'] ?? 1)) * 100 : 0, 1) }}% of potential profit
+                                    </div>
                                 </div>
                                 <div class="col-auto">
-                                    <i class="fas fa-chart-bar fa-2x text-gray-300"></i>
+                                    <i class="fas fa-percentage fa-2x text-gray-300"></i>
                                 </div>
                             </div>
                         </div>
@@ -402,35 +416,239 @@
                 </div>
             </div>
             
-            <div class="row">
+            <div class="row mt-4">
                 <div class="col-12">
-                    <div class="card shadow-sm">
-                        <div class="card-body">
-                            <h6 class="font-weight-bold mb-3">Profit Comparison (Before & After Discounts)</h6>
+                    <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+                        <div class="card-header bg-light py-3 px-4 border-0">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="fw-bold mb-0">Profit Comparison (Before & After Discounts)</h6>
+                                <div>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="refresh-chart">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body p-4">
                             <div style="height: 250px;">
                                 <canvas id="discountComparisonChart"></canvas>
                             </div>
-                            <script>
-                                // Initialize the discount comparison chart
-                                document.addEventListener('DOMContentLoaded', function() {
-                                    var ctx = document.getElementById('discountComparisonChart');
-                                    if (ctx) {
-                                        new Chart(ctx, {
-                                            type: 'bar',
-                                            data: {
-                                                labels: ['Profit Before Discounts', 'Discount Impact', 'Profit After Discounts'],
-                                                datasets: [{
-                                                    label: 'Amount (Rs.)',
-                                                    data: [
-                                                        {{ $profitData['total_profit_before_discount'] ?? 0 }},
-                                                        {{ $profitData['discount_impact'] ?? 0 }},
-                                                        {{ $profitData['total_profit_after_discount'] ?? 0 }}
-                                                    ],
-                                                    backgroundColor: ['#36b9cc', '#e74a3b', '#1cc88a'],
-                                                    borderColor: ['#2c9faf', '#e02d1b', '#17a673'],
-                                                    borderWidth: 1
-                                                }]
-                                            },
+                            <div class="row mt-3">
+                                <div class="col-md-4 text-center">
+                                    <div class="small text-muted mb-1">Potential Profit</div>
+                                    <div class="h5 mb-0 fw-bold text-info">Rs. {{ number_format($profitData['total_profit_before_discount'] ?? 0, 2) }}</div>
+                                    <div class="progress mt-2" style="height: 4px;">
+                                        <div class="progress-bar bg-info" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 text-center">
+                                    <div class="small text-muted mb-1">Discount Impact</div>
+                                    <div class="h5 mb-0 fw-bold text-danger">Rs. {{ number_format($profitData['discount_impact'] ?? 0, 2) }}</div>
+                                    <div class="progress mt-2" style="height: 4px;">
+                                        <div class="progress-bar bg-danger" role="progressbar" 
+                                            style="width: {{ $profitData['total_profit_before_discount'] > 0 ? ($profitData['discount_impact'] / $profitData['total_profit_before_discount']) * 100 : 0 }}%" 
+                                            aria-valuenow="{{ $profitData['total_profit_before_discount'] > 0 ? ($profitData['discount_impact'] / $profitData['total_profit_before_discount']) * 100 : 0 }}" 
+                                            aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 text-center">
+                                    <div class="small text-muted mb-1">Actual Profit</div>
+                                    <div class="h5 mb-0 fw-bold text-success">Rs. {{ number_format($profitData['total_profit_after_discount'] ?? 0, 2) }}</div>
+                                    <div class="progress mt-2" style="height: 4px;">
+                                        <div class="progress-bar bg-success" role="progressbar" 
+                                            style="width: {{ $profitData['total_profit_before_discount'] > 0 ? ($profitData['total_profit_after_discount'] / $profitData['total_profit_before_discount']) * 100 : 0 }}%" 
+                                            aria-valuenow="{{ $profitData['total_profit_before_discount'] > 0 ? ($profitData['total_profit_after_discount'] / $profitData['total_profit_before_discount']) * 100 : 0 }}" 
+                                            aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2 mt-3">
+                                <a href="{{ route('reports.profit') }}?start_date={{ now()->subDays(7)->format('Y-m-d') }}&end_date={{ now()->format('Y-m-d') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                    <i class="fas fa-calendar-alt me-1"></i> Last 7 Days
+                                </a>
+                                <a href="{{ route('reports.profit') }}?start_date={{ now()->subDays(30)->format('Y-m-d') }}&end_date={{ now()->format('Y-m-d') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                    <i class="fas fa-calendar-week me-1"></i> Last 30 Days
+                                </a>
+                                <a href="{{ route('reports.profit') }}?start_date={{ now()->subDays(90)->format('Y-m-d') }}&end_date={{ now()->format('Y-m-d') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                    <i class="fas fa-calendar-check me-1"></i> Last Quarter
+                                </a>
+                                <a href="{{ route('reports.profit') }}?start_date={{ now()->startOfYear()->format('Y-m-d') }}&end_date={{ now()->format('Y-m-d') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                    <i class="fas fa-calendar me-1"></i> Year to Date
+                                </a>
+                                <a href="{{ route('reports.profit') }}?start_date={{ now()->subYear()->format('Y-m-d') }}&end_date={{ now()->format('Y-m-d') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                    <i class="fas fa-history me-1"></i> Last 12 Months
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Discount Impact Analysis Card -->
+        <div class="card shadow-sm border-0 rounded-4 mb-4 overflow-hidden">
+            <div class="card-header bg-light py-3 px-4 border-0">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle p-2 bg-warning bg-opacity-10 me-3 d-flex justify-content-center align-items-center" style="width: 42px; height: 42px">
+                        <i class="fas fa-tags text-warning"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-0">Discount Impact Analysis</h5>
+                        <p class="text-muted small mb-0">How discounts affect your bottom line</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-4 mb-4">
+                    <!-- Item Discounts Card -->
+                    <div class="col-md-6 col-xl-3">
+                        <div class="card border-left-primary shadow h-100">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Item-Level Discounts</div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">Rs. {{ number_format($profitData['total_item_discounts'] ?? 0, 2) }}</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-tag fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Invoice Discounts Card -->
+                    <div class="col-md-6 col-xl-3">
+                        <div class="card border-left-success shadow h-100">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Invoice-Level Discounts</div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">Rs. {{ number_format($profitData['total_invoice_discounts'] ?? 0, 2) }}</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-receipt fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Profit Before Discounts Card -->
+                    <div class="col-md-6 col-xl-3">
+                        <div class="card border-left-info shadow h-100">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Profit Before Discounts</div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">Rs. {{ number_format($profitData['total_profit_before_discount'] ?? 0, 2) }}</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Profit After Discounts Card -->
+                    <div class="col-md-6 col-xl-3">
+                        <div class="card border-left-danger shadow h-100">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Discount Impact</div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">Rs. {{ number_format(($profitData['discount_impact'] ?? 0), 2) }}</div>
+                                        <div class="small text-muted mt-1">
+                                            {{ number_format(($profitData['total_profit_before_discount'] > 0 ? ($profitData['discount_impact'] / $profitData['total_profit_before_discount']) * 100 : 0), 1) }}% of potential profit
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-percentage fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+                            <div class="card-header bg-light py-3 px-4 border-0">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h6 class="fw-bold mb-0">Profit Comparison (Before & After Discounts)</h6>
+                                    <div>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" id="refresh-chart">
+                                            <i class="fas fa-sync-alt"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body p-4">
+                                <div style="height: 250px;">
+                                    <canvas id="discountComparisonChart"></canvas>
+                                </div>
+                                <div class="row mt-3">
+                                    <div class="col-md-4 text-center">
+                                        <div class="small text-muted mb-1">Potential Profit</div>
+                                        <div class="h5 mb-0 fw-bold text-info">Rs. {{ number_format($profitData['total_profit_before_discount'] ?? 0, 2) }}</div>
+                                        <div class="progress mt-2" style="height: 4px;">
+                                            <div class="progress-bar bg-info" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 text-center">
+                                        <div class="small text-muted mb-1">Discount Impact</div>
+                                        <div class="h5 mb-0 fw-bold text-danger">Rs. {{ number_format($profitData['discount_impact'] ?? 0, 2) }}</div>
+                                        <div class="progress mt-2" style="height: 4px;">
+                                            <div class="progress-bar bg-danger" role="progressbar" 
+                                                style="width: {{ $profitData['total_profit_before_discount'] > 0 ? ($profitData['discount_impact'] / $profitData['total_profit_before_discount']) * 100 : 0 }}%" 
+                                                aria-valuenow="{{ $profitData['total_profit_before_discount'] > 0 ? ($profitData['discount_impact'] / $profitData['total_profit_before_discount']) * 100 : 0 }}" 
+                                                aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 text-center">
+                                        <div class="small text-muted mb-1">Actual Profit</div>
+                                        <div class="h5 mb-0 fw-bold text-success">Rs. {{ number_format($profitData['total_profit_after_discount'] ?? 0, 2) }}</div>
+                                        <div class="progress mt-2" style="height: 4px;">
+                                            <div class="progress-bar bg-success" role="progressbar" 
+                                                style="width: {{ $profitData['total_profit_before_discount'] > 0 ? ($profitData['total_profit_after_discount'] / $profitData['total_profit_before_discount']) * 100 : 0 }}%" 
+                                                aria-valuenow="{{ $profitData['total_profit_before_discount'] > 0 ? ($profitData['total_profit_after_discount'] / $profitData['total_profit_before_discount']) * 100 : 0 }}" 
+                                                aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <script>
+                                    // Initialize the discount comparison chart
+                                    document.addEventListener('DOMContentLoaded', function() {
+                                        var ctx = document.getElementById('discountComparisonChart');
+                                        var discountChart;
+                                    var discountChart;
+                                    
+                                    function initDiscountChart() {
+                                        // Destroy existing chart if it exists
+                                        if (discountChart) {
+                                            discountChart.destroy();
+                                        }
+                                        
+                                        if (ctx) {
+                                            discountChart = new Chart(ctx, {
+                                                type: 'bar',
+                                                data: {
+                                                    labels: ['Potential Profit', 'Discount Impact', 'Actual Profit'],
+                                                    datasets: [{
+                                                        label: 'Amount (Rs.)',
+                                                        data: [
+                                                            {{ $profitData['total_profit_before_discount'] ?? 0 }},
+                                                            {{ $profitData['discount_impact'] ?? 0 }},
+                                                            {{ $profitData['total_profit_after_discount'] ?? 0 }}
+                                                        ],
+                                                        backgroundColor: ['#36b9cc', '#e74a3b', '#1cc88a'],
+                                                        borderColor: ['#2c9faf', '#e02d1b', '#17a673'],
+                                                        borderWidth: 1
+                                                    }]
+                                                },
                                             options: {
                                                 responsive: true,
                                                 maintainAspectRatio: false,
@@ -460,11 +678,22 @@
                                                                 return 'Rs. ' + context.raw.toLocaleString();
                                                             }
                                                         }
+                                                    },
+                                                    legend: {
+                                                        display: false
                                                     }
                                                 }
                                             }
                                         });
                                     }
+                                    
+                                    // Initialize chart when DOM is loaded
+                                    initDiscountChart();
+                                    
+                                    // Add refresh button functionality
+                                    document.getElementById('refresh-chart').addEventListener('click', function() {
+                                        initDiscountChart();
+                                    });
                                 });
                             </script>
                         </div>
@@ -477,13 +706,20 @@
     <!-- Professional Executive Summary Card -->
     <div class="card shadow-sm border-0 rounded-4 mb-4 overflow-hidden">
         <div class="card-header bg-light py-3 px-4 border-0">
-            <div class="d-flex align-items-center">
-                <div class="rounded-circle p-2 bg-primary bg-opacity-10 me-3 d-flex justify-content-center align-items-center" style="width: 42px; height: 42px">
-                    <i class="fas fa-file-alt text-primary"></i>
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle p-2 bg-primary bg-opacity-10 me-3 d-flex justify-content-center align-items-center" style="width: 42px; height: 42px">
+                        <i class="fas fa-file-alt text-primary"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-0">Executive Summary</h5>
+                        <p class="text-muted small mb-0">{{ $startDate->format('MMM d, Y') }} to {{ $endDate->format('MMM d, Y') }}</p>
+                    </div>
                 </div>
                 <div>
-                    <h5 class="fw-bold mb-0">Executive Summary</h5>
-                    <p class="text-muted small mb-0">{{ $startDate->format('MMM d, Y') }} to {{ $endDate->format('MMM d, Y') }}</p>
+                    <a href="{{ route('reports.profit.print', ['start_date' => $startDate->format('Y-m-d'), 'end_date' => $endDate->format('Y-m-d')]) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-print me-1"></i> Print Report
+                    </a>
                 </div>
             </div>
         </div>
