@@ -30,12 +30,14 @@ class SaleItem extends Model
     }
 
     /**
-     * Calculate profit margin attribute based on original product prices
+     * Calculate profit margin attribute based on actual sale price and quantity
+     * This is the profit before any discounts are applied
      */
     public function getProfitMarginAttribute()
     {
+        // Use the actual sale price (not the product's current sale price which might have changed)
         $cost = $this->product->purchase_price * $this->quantity;
-        $revenue = $this->product->sale_price * $this->quantity;
+        $revenue = $this->price * $this->quantity;
         return $revenue - $cost;
     }
 
@@ -57,16 +59,30 @@ class SaleItem extends Model
     
     /**
      * Calculate profit after both item-level and invoice-level discounts
+     * This method properly distributes the invoice-level discount across items
      * 
-     * @param float $proportionalDiscount Additional invoice-level discount proportionally applied
+     * @param float $invoiceDiscount Total invoice-level discount amount
+     * @param float $invoiceSubtotal Total invoice subtotal before invoice-level discount
      * @return float
      */
-    public function calculateTotalProfit($proportionalDiscount = 0)
+    public function calculateTotalProfit($invoiceDiscount = 0, $invoiceSubtotal = 0)
     {
         // Get profit after item-level discount
         $profitAfterItemDiscount = $this->profit_after_discount;
         
+        // If no invoice discount or subtotal is zero, return profit after item discount
+        if ($invoiceDiscount <= 0 || $invoiceSubtotal <= 0) {
+            return $profitAfterItemDiscount;
+        }
+        
+        // Calculate this item's proportion of the total invoice
+        $itemTotal = ($this->price * $this->quantity) - $this->discount;
+        $proportion = $itemTotal / $invoiceSubtotal;
+        
+        // Calculate this item's share of the invoice discount
+        $itemInvoiceDiscount = $invoiceDiscount * $proportion;
+        
         // Apply proportional invoice-level discount
-        return $profitAfterItemDiscount - $proportionalDiscount;
+        return $profitAfterItemDiscount - $itemInvoiceDiscount;
     }
 }

@@ -20,13 +20,11 @@ class SalesController extends Controller
     {
         $sale = Sale::with(['customer', 'saleItems.product'])->findOrFail($id);
 
-        // Previous Pending
-        $previousPending = CustomerAccount::where('customer_id', $sale->customer_id)
-            ->where('created_at', '<', $sale->created_at)
-            ->orderBy('created_at', 'desc')
-            ->value('pending_balance');
-
-        return view('dashboard.sales.print', compact('sale', 'previousPending'));
+        // We don't need to calculate previousPending separately anymore
+        // The view will calculate the last pending amount as:
+        // $sale->customer->account->pending_balance - $sale->pending_amount
+        
+        return view('dashboard.sales.print', compact('sale'));
     }
     public function show($id)
     {

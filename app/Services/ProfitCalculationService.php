@@ -16,7 +16,7 @@ class ProfitCalculationService
      * @param Carbon|string $endDate End date
      * @return array Returns total revenue, cost, and profit data
      */
-    public function calculateProfitForDateRange($startDate, $endDate)
+    public function calculateProfitForDateRange($startDate, $endDate, $specificSaleId = null)
     {
         // Convert string dates to Carbon if necessary
         if (!$startDate instanceof Carbon) {
@@ -27,8 +27,12 @@ class ProfitCalculationService
             $endDate = Carbon::parse($endDate)->endOfDay();
         }
         
-        // Get all sales in the date range
-        $sales = Sale::whereBetween('created_at', [$startDate, $endDate])->with('items.product')->get();
+        // Get all sales in the date range, optionally filter by specific sale ID
+        $salesQuery = Sale::whereBetween('created_at', [$startDate, $endDate])->with('items.product');
+        if ($specificSaleId) {
+            $salesQuery->where('id', $specificSaleId);
+        }
+        $sales = $salesQuery->get();
         
         // Initialize result variables
         $result = [
@@ -37,33 +41,39 @@ class ProfitCalculationService
             'total_profit_before_discount' => 0,
             'total_profit_after_discount' => 0,
             'total_item_discounts' => 0,
-            'total_invoice_discounts' => 0
+            'total_invoice_discounts' => 0,
+            'discount_impact' => 0
         ];
         
         foreach ($sales as $sale) {
             // Calculate invoice-level metrics
-            $invoiceTotal = $sale->total_amount;
+            $invoiceSubtotal = $sale->total_amount; // This is before any discounts
             $invoiceDiscount = $sale->discount;
-            $invoiceNetTotal = $sale->net_total;
+            $invoiceNetTotal = $sale->net_total; // This is after all discounts
             
-            // Add to totals
+            // Add to revenue total (after all discounts)
             $result['total_revenue'] += $invoiceNetTotal;
             $result['total_invoice_discounts'] += $invoiceDiscount;
             
             // Calculate item-level metrics
             $saleItemsTotalCost = 0;
             $saleItemsDiscounts = 0;
+            $saleItemsSubtotal = 0; // Sum of all items price * quantity before discounts
             
             foreach ($sale->items as $item) {
-                // Calculate cost
+                // Calculate item cost (based on purchase price)
                 $itemCost = $item->product->purchase_price * $item->quantity;
                 $saleItemsTotalCost += $itemCost;
                 
-                // Track item discounts
+                // Calculate item revenue before any discounts
+                $itemSubtotal = $item->price * $item->quantity;
+                $saleItemsSubtotal += $itemSubtotal;
+                
+                // Track item-level discounts
                 $saleItemsDiscounts += $item->discount;
                 
-                // Add to profit before discount
-                $profitBeforeDiscount = ($item->price * $item->quantity) - $itemCost;
+                // Calculate profit before any discounts
+                $profitBeforeDiscount = $itemSubtotal - $itemCost;
                 $result['total_profit_before_discount'] += $profitBeforeDiscount;
             }
             
@@ -72,8 +82,14 @@ class ProfitCalculationService
             $result['total_item_discounts'] += $saleItemsDiscounts;
             
             // Calculate profit after all discounts (both item and invoice level)
+            // This is the actual net revenue minus the total cost
             $totalProfitForSale = $invoiceNetTotal - $saleItemsTotalCost;
             $result['total_profit_after_discount'] += $totalProfitForSale;
+            
+            // Calculate how much profit was lost due to discounts
+            $profitBeforeAllDiscounts = $saleItemsSubtotal - $saleItemsTotalCost;
+            $discountImpact = $profitBeforeAllDiscounts - $totalProfitForSale;
+            $result['discount_impact'] += $discountImpact;
         }
         
         // Calculate other business metrics
@@ -81,7 +97,10 @@ class ProfitCalculationService
             ? ($result['total_profit_after_discount'] / $result['total_revenue']) * 100 
             : 0;
             
-        $result['discount_impact'] = $result['total_profit_before_discount'] - $result['total_profit_after_discount'];
+        // Ensure discount_impact is calculated correctly
+        if (!isset($result['discount_impact']) || $result['discount_impact'] <= 0) {
+            $result['discount_impact'] = $result['total_profit_before_discount'] - $result['total_profit_after_discount'];
+        }
         
         return $result;
     }

@@ -33,7 +33,18 @@ class ProfitReportController extends Controller
         $startDate = $request->input('start_date') ? Carbon::parse($request->input('start_date'))->startOfDay() : Carbon::today()->subDays(30)->startOfDay();
         
         // Get profit data with accurate discount calculations
-        $profitData = $this->profitCalculationService->calculateProfitForDateRange($startDate, $endDate);
+        try {
+            $profitData = $this->profitCalculationService->calculateProfitForDateRange($startDate, $endDate);
+        } catch (\Exception $e) {
+            // If there's an error, provide default values
+            $profitData = [
+                'total_revenue' => 0,
+                'total_profit_before_discount' => 0,
+                'total_profit_after_discount' => 0,
+                'discount_impact' => 0,
+                'gross_margin_percentage' => 0
+            ];
+        }
         
         // Calculate summary statistics
         $totalSales = Sale::whereBetween('created_at', [$startDate, $endDate])->count();
@@ -114,13 +125,18 @@ class ProfitReportController extends Controller
         
         // Calculate profit for each recent sale with accurate discount calculations
         foreach ($recentSales as $sale) {
-            // Calculate proper sale profit by getting sale items and their discounts
-            $saleData = $this->profitCalculationService->calculateProfitForDateRange(
-                $sale->created_at, 
-                $sale->created_at->copy()->endOfDay(), 
-                $sale->id
-            );
-            $sale->profit = $saleData['total_profit_after_discount'];
+            try {
+                // Calculate proper sale profit by getting sale items and their discounts
+                $saleData = $this->profitCalculationService->calculateProfitForDateRange(
+                    $sale->created_at, 
+                    $sale->created_at->copy()->endOfDay(), 
+                    $sale->id
+                );
+                $sale->profit = $saleData['total_profit_after_discount'];
+            } catch (\Exception $e) {
+                // If there's an error, set default profit value
+                $sale->profit = 0;
+            }
         }
         
         // Calculate weekly profit data
@@ -141,7 +157,8 @@ class ProfitReportController extends Controller
             'revenueGrowth',
             'profitGrowth',
             'marginGrowth',
-            'salesGrowth'
+            'salesGrowth',
+            'profitData'
         ));
     }
     
@@ -294,12 +311,19 @@ class ProfitReportController extends Controller
             // Only include complete or partial weeks within the date range
             if ($weekStart->lte($endDate) && $weekEnd->gte($startDate)) {
                 // Get accurate profit data for this week
-                $weekProfitData = $this->profitCalculationService->calculateProfitForDateRange($weekStart, $weekEnd);
-            
-                // Calculate weekly totals with accurate discount handling
-                $weekRevenue = $weekProfitData['total_revenue'];
-                $weekProfit = $weekProfitData['total_profit_after_discount'];
-                $weekMargin = $weekProfitData['gross_margin_percentage'];
+                try {
+                    $weekProfitData = $this->profitCalculationService->calculateProfitForDateRange($weekStart, $weekEnd);
+                
+                    // Calculate weekly totals with accurate discount handling
+                    $weekRevenue = $weekProfitData['total_revenue'];
+                    $weekProfit = $weekProfitData['total_profit_after_discount'];
+                    $weekMargin = $weekProfitData['gross_margin_percentage'];
+                } catch (\Exception $e) {
+                    // If there's an error, set default values
+                    $weekRevenue = 0;
+                    $weekProfit = 0;
+                    $weekMargin = 0;
+                }
                 
                 // Add to weekly data array
                 $weeklyData[] = (object)[
