@@ -318,6 +318,7 @@
         <div class="tab-content custom-tab-content" id="reportTabsContent">
             <!-- Dashboard Tab -->
             <div class="tab-pane fade show active" id="dashboard" role="tabpanel" aria-labelledby="dashboard-tab">
+                <!-- Stats Cards with Fixed Icons -->
                 <div class="row g-4 mb-4">
                     <div class="col-md-3">
                         <div class="stats-card h-100 bg-white">
@@ -328,8 +329,8 @@
                                 <h2 class="stats-value mt-3">Rs. {{ number_format($dailyStats['sales'], 2) }}</h2>
                                 <p class="stats-label">Today's Sales</p>
                                 <div class="position-absolute top-0 end-0 p-3">
-                                    <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary px-3 py-2">
-                                        <i class="fas fa-calendar-day me-1"></i> Today
+                                    <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary px-3 py-2 d-flex align-items-center">
+                                        <i class="fas fa-calendar-day me-2"></i><span>Today</span>
                                     </span>
                                 </div>
                             </div>
@@ -344,8 +345,8 @@
                                 <h2 class="stats-value mt-3">Rs. {{ number_format($weeklyStats['sales'], 2) }}</h2>
                                 <p class="stats-label">Weekly Sales</p>
                                 <div class="position-absolute top-0 end-0 p-3">
-                                    <span class="badge rounded-pill bg-success bg-opacity-10 text-success px-3 py-2">
-                                        <i class="fas fa-calendar-week me-1"></i> Week
+                                    <span class="badge rounded-pill bg-success bg-opacity-10 text-success px-3 py-2 d-flex align-items-center">
+                                        <i class="fas fa-calendar-week me-2"></i><span>Week</span>
                                     </span>
                                 </div>
                             </div>
@@ -360,8 +361,8 @@
                                 <h2 class="stats-value mt-3">Rs. {{ number_format($monthlyStats['sales'], 2) }}</h2>
                                 <p class="stats-label">Monthly Sales</p>
                                 <div class="position-absolute top-0 end-0 p-3">
-                                    <span class="badge rounded-pill bg-info bg-opacity-10 text-info px-3 py-2">
-                                        <i class="fas fa-calendar-alt me-1"></i> Month
+                                    <span class="badge rounded-pill bg-info bg-opacity-10 text-info px-3 py-2 d-flex align-items-center">
+                                        <i class="fas fa-calendar-alt me-2"></i><span>Month</span>
                                     </span>
                                 </div>
                             </div>
@@ -376,8 +377,8 @@
                                 <h2 class="stats-value mt-3">{{ number_format($productsCount) }}</h2>
                                 <p class="stats-label">Total Products</p>
                                 <div class="position-absolute top-0 end-0 p-3">
-                                    <span class="badge rounded-pill bg-warning bg-opacity-10 text-warning px-3 py-2">
-                                        <i class="fas fa-box me-1"></i> Stock
+                                    <span class="badge rounded-pill bg-warning bg-opacity-10 text-warning px-3 py-2 d-flex align-items-center">
+                                        <i class="fas fa-box me-2"></i><span>Stock</span>
                                     </span>
                                 </div>
                             </div>

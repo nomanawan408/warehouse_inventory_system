@@ -107,6 +107,8 @@ class ReportController extends Controller
         
         // Get total products count for dashboard stat
         $productsCount = Product::count();
+        
+        // Pending balance calculations removed - relocated to account pages
 
         return view('dashboard.reports.index', compact(
             'dailyStats', 
@@ -198,6 +200,8 @@ class ReportController extends Controller
             ->orderByDesc('total_profit')
             ->limit(5)
             ->get();
+            
+        // Pending balance calculations removed - relocated to account pages
 
         // Low stock products
         $lowStockProducts = Product::where('quantity', '<=', 10)
@@ -500,7 +504,7 @@ class ReportController extends Controller
         $totalProfit = $salesData->sum('profit_margin');
         $profitMargin = $totalRevenue > 0 ? ($totalProfit / $totalRevenue) * 100 : 0;
         
-        // Top selling products
+        // Top selling products 
         $topSellingProducts = collect($productIds)->isEmpty() ? collect([]) : DB::table('sale_items')
             ->join('products', 'sale_items.product_id', '=', 'products.id')
             ->join('sales', 'sale_items.sale_id', '=', 'sales.id')

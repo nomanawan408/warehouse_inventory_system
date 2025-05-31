@@ -9,6 +9,37 @@
                         <h4>Customer Accounts</h4>
                         {{-- <a href="{{ route('customers.create') }}" class="btn btn-primary">Create Customer</a> --}}
                     </div>
+                    
+                    <!-- Customer Accounts Summary Cards -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="card shadow-sm border-primary h-100">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-shopping-cart fa-2x mb-2 text-primary"></i>
+                                    <h6 class="text-muted">Total Purchases</h6>
+                                    <h4 class="text-primary mb-0">Rs. {{ number_format($accounts->sum('total_purchases'), 2) }}</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card shadow-sm border-success h-100">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-money-bill-wave fa-2x mb-2 text-success"></i>
+                                    <h6 class="text-muted">Total Paid</h6>
+                                    <h4 class="text-success mb-0">Rs. {{ number_format($accounts->sum('total_paid'), 2) }}</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card shadow-sm border-danger h-100">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-balance-scale fa-2x mb-2 text-danger"></i>
+                                    <h6 class="text-muted">Total Pending Balance</h6>
+                                    <h4 class="text-danger mb-0">Rs. {{ number_format($accounts->sum('pending_balance'), 2) }}</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <table id="customerAccountTable" class="table table-bordered table-hover table-striped mt-3">
                         <thead class="table-dark">
                             <tr>
