@@ -241,6 +241,11 @@ class SalesController extends Controller
 
         try {
             $sale = Sale::findOrFail($id);
+
+            // Preserve original values before any modifications so we can compute accurate diffs
+            $oldCustomerId  = $sale->customer_id;
+            $oldNetTotal    = $sale->net_total;
+            $oldAmountPaid  = $sale->amount_paid;
             
             // Parse cart items from JSON
             $cartItems = json_decode($validated['cart'], true);
@@ -310,39 +315,93 @@ class SalesController extends Controller
                 $sale->items()->save($saleItem);
             }
 
-            // 5️⃣ Update Customer Account
-            $customerAccount = CustomerAccount::firstOrCreate(
-                ['customer_id' => $validated['customer_id']],
-                ['total_purchases' => 0, 'total_paid' => 0, 'pending_balance' => 0, 'last_payment_date' => null]
-            );
-            
-            // Calculate the difference between old and new values
-            $purchaseDifference = $validated['net_total'] - $sale->getOriginal('net_total');
-            $paidDifference = $validated['paid_amount'] - $sale->getOriginal('amount_paid');
-            
-            // Update customer account
-            $customerAccount->increment('total_purchases', $purchaseDifference);
-            $customerAccount->increment('total_paid', $paidDifference);
-            $customerAccount->increment('pending_balance', $purchaseDifference - $paidDifference);
-            $customerAccount->update(['last_payment_date' => now()]);
+            // 5️⃣ Update Customer Account & Transactions
 
-            // 6️⃣ Update Payment Record
+            // 5.a) Revert figures from the original sale if the customer remains the same
+            if ($oldCustomerId === (int) $validated['customer_id']) {
+                $purchaseDiff = $validated['net_total'] - $oldNetTotal;
+                $paidDiff     = $validated['paid_amount'] - $oldAmountPaid;
+
+                $customerAccount = CustomerAccount::firstOrCreate(
+                    ['customer_id' => $validated['customer_id']],
+                    ['total_purchases' => 0, 'total_paid' => 0, 'pending_balance' => 0]
+                );
+
+                $customerAccount->increment('total_purchases', $purchaseDiff);
+                $customerAccount->increment('total_paid', $paidDiff);
+                $customerAccount->increment('pending_balance', $purchaseDiff - $paidDiff);
+            } else {
+                // 5.b) Customer changed – rollback old customer account and add to new
+                $oldAccount = CustomerAccount::firstOrCreate(
+                    ['customer_id' => $oldCustomerId],
+                    ['total_purchases' => 0, 'total_paid' => 0, 'pending_balance' => 0]
+                );
+                $oldAccount->decrement('total_purchases', $oldNetTotal);
+                $oldAccount->decrement('total_paid', $oldAmountPaid);
+                $oldAccount->decrement('pending_balance', max(0, $oldNetTotal - $oldAmountPaid));
+
+                $customerAccount = CustomerAccount::firstOrCreate(
+                    ['customer_id' => $validated['customer_id']],
+                    ['total_purchases' => 0, 'total_paid' => 0, 'pending_balance' => 0]
+                );
+                $customerAccount->increment('total_purchases', $validated['net_total']);
+                $customerAccount->increment('total_paid', $validated['paid_amount']);
+                $customerAccount->increment('pending_balance', $validated['net_total'] - $validated['paid_amount']);
+            }
+
             if ($validated['paid_amount'] > 0) {
-                $payment = Payment::where('sale_id', $id)->first();
-                
+                $customerAccount->last_payment_date = now();
+            }
+            $customerAccount->save();
+
+            // 5.c) Refresh Customer Transactions – delete old and create new reflecting current amounts
+            CustomerTransaction::where('sale_id', $sale->id)->delete();
+
+            // Debit for sale amount
+            CustomerTransaction::create([
+                'customer_id'      => $validated['customer_id'],
+                'sale_id'          => $sale->id,
+                'transaction_type' => 'debit',
+                'amount'           => $validated['net_total'],
+                'payment_method'   => null,
+                'reference'        => 'Sale #'.$sale->id.' (edited)',
+                'transaction_date' => now(),
+            ]);
+
+            // Credit for payment (if any)
+            if ($validated['paid_amount'] > 0) {
+                CustomerTransaction::create([
+                    'customer_id'      => $validated['customer_id'],
+                    'sale_id'          => $sale->id,
+                    'transaction_type' => 'credit',
+                    'amount'           => $validated['paid_amount'],
+                    'payment_method'   => 'cash',
+                    'reference'        => 'Payment for sale #'.$sale->id.' (edited)',
+                    'transaction_date' => now(),
+                ]);
+            }
+
+            // 6️⃣ Update Payment Record (create / update / delete as needed)
+            $payment = Payment::where('sale_id', $id)->first();
+            if ($validated['paid_amount'] > 0) {
                 if ($payment) {
                     $payment->update([
-                        'amount_paid' => $validated['paid_amount'],
+                        'amount_paid'  => $validated['paid_amount'],
                         'payment_date' => now(),
                     ]);
                 } else {
                     Payment::create([
-                        'customer_id' => $validated['customer_id'],
-                        'sale_id' => $id,
-                        'amount_paid' => $validated['paid_amount'],
+                        'customer_id'  => $validated['customer_id'],
+                        'sale_id'      => $id,
+                        'amount_paid'  => $validated['paid_amount'],
                         'payment_type' => 'Cash',
-                        'payment_date' => now()
+                        'payment_date' => now(),
                     ]);
+                }
+            } else {
+                // No amount paid now – remove any existing payment record
+                if ($payment) {
+                    $payment->delete();
                 }
             }
 
