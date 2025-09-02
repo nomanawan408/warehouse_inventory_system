@@ -71,6 +71,7 @@
                                 <th>Credit</th>
                                 <th>Balance</th>
                                 <th>Detail</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -81,6 +82,9 @@
                                     <td>{{ $transaction['credit'] ? number_format((float)$transaction['credit'], 2) : '' }}</td>
                                     <td>{{ number_format((float)$transaction['balance'], 2) }}</td>
                                     <td>{{ $transaction['detail'] }}</td>
+                                    <td>
+                                        <a href="{{ route('accounts.transactions.edit', [$account->id, $transaction['id']]) }}" class="btn btn-sm btn-warning">Edit</a>
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>

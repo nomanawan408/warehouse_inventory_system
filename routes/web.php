@@ -65,6 +65,9 @@ Route::middleware('auth')->group(function () {
     //Add payments to customer accounts 
     Route::get('/accounts/{id}/payments/add', [AccountController::class, 'addPayment'])->name('accounts.payments.add');
     Route::post('/accounts/{id}/payments', [AccountController::class, 'storePayment'])->name('accounts.payments.store');
+    // Edit and update customer transactions
+    Route::get('/accounts/{id}/transactions/{transactionId}/edit', [AccountController::class, 'editTransaction'])->name('accounts.transactions.edit');
+    Route::put('/accounts/{id}/transactions/{transactionId}', [AccountController::class, 'updateTransaction'])->name('accounts.transactions.update');
 
     // Add Pending Amount to Account
     Route::post('/accounts/{id}/pending', [AccountController::class, 'storePendingAmount'])->name('accounts.pending.store');

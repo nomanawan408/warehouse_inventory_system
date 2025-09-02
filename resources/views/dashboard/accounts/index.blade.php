@@ -76,7 +76,7 @@
                                             </div>
                                                 <!-- Modal -->
                                                 <div class="modal fade" id="addPendingAmountModal{{ $account->id }}" tabindex="-1" aria-labelledby="addPendingAmountModalLabel{{ $account->id }}" aria-hidden="true">
-                                                    <div class="modal-dialog">
+                                                    <div class="modal-dialog modal-dialog-centered">
                                                         <div class="modal-content">
                                                             <div class="modal-header">
                                                                 <h5 class="modal-title" id="addPendingAmountModalLabel{{ $account->id }}">Add Pending Amount</h5>
@@ -102,7 +102,7 @@
                                                 &nbsp;
                                                 <!-- Modal -->
                                                 <div class="modal fade" id="addPaymentModal{{ $account->id }}" tabindex="-1" aria-labelledby="addPaymentModalLabel{{ $account->id }}" aria-hidden="true">
-                                                    <div class="modal-dialog">
+                                                    <div class="modal-dialog modal-dialog-centered">
                                                         <div class="modal-content">
                                                             <div class="modal-header">
                                                                 <h5 class="modal-title" id="addPaymentModalLabel{{ $account->id }}">Add Payment</h5>

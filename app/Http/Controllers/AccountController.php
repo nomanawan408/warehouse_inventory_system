@@ -60,7 +60,7 @@ class AccountController extends Controller
             'payment_method' => 'cash',
             'detail' => 'Payment received',
             'reference' => 'Payment received',
-            'transaction_date' => now(),
+            'transaction_date' => $request->payment_date,
         ]);
         
         // Update the customer's account balance
@@ -113,9 +113,14 @@ class AccountController extends Controller
                 $balance += $transaction->amount;
                 $debit = $transaction->amount;
                 $credit = null;
-                $detail = 'Purchase';
-                if ($detail = 'Pending amount added') {
-                    $detail =  $transaction->reference  ;
+                
+                // Determine detail text
+                if ($transaction->detail == 'Pending amount added') {
+                    $detail = $transaction->reference;
+                } elseif ($transaction->detail) {
+                    $detail = $transaction->detail;
+                } else {
+                    $detail = 'Purchase';
                 }
 
             } else {
@@ -123,9 +128,14 @@ class AccountController extends Controller
                 $balance -= $transaction->amount;
                 $debit = null;
                 $credit = $transaction->amount;
-                $detail = 'Payment';
-                if ($detail = 'Payment received') {
-                    $detail =    $transaction->reference  ;
+                
+                // Determine detail text
+                if ($transaction->detail == 'Payment received') {
+                    $detail = $transaction->reference;
+                } elseif ($transaction->detail) {
+                    $detail = $transaction->detail;
+                } else {
+                    $detail = 'Payment Received';
                 }
             }
     
@@ -136,6 +146,7 @@ class AccountController extends Controller
     
             // Format the transaction data
             $formattedTransactions[] = [
+                'id' => $transaction->id,
                 'transaction_date' => \Carbon\Carbon::parse($transaction->transaction_date)->format('Y-m-d H:i:s'),
                 'debit' => $debit,
                 'credit' => $credit,
@@ -144,7 +155,7 @@ class AccountController extends Controller
             ];
         }
 
-        return view('dashboard.accounts.show', compact('account', 'formattedTransactions'));
+        return view('dashboard.accounts.show', compact('account', 'formattedTransactions', 'transactions'));
     }
 
     public function storePendingAmount(Request $request, $id)
@@ -183,6 +194,86 @@ class AccountController extends Controller
         $account->save();
 
         return redirect()->route('accounts.index')->with('success', 'Pending amount added successfully.');
+    }
+
+    /**
+     * Show the form for editing a transaction.
+     */
+    public function editTransaction($accountId, $transactionId)
+    {
+        $account = CustomerAccount::findOrFail($accountId);
+        $transaction = CustomerTransaction::findOrFail($transactionId);
+        
+        // Ensure the transaction belongs to the account
+        if ($transaction->customer_id != $account->customer_id) {
+            return redirect()->back()->with('error', 'Transaction does not belong to this account.');
+        }
+        
+        return view('dashboard.accounts.edit_transaction', compact('account', 'transaction'));
+    }
+
+    /**
+     * Update the specified transaction in storage.
+     */
+    public function updateTransaction(Request $request, $accountId, $transactionId)
+    {
+        // Validate the request
+        $request->validate([
+            'amount' => 'required|numeric|min:0.01',
+            'transaction_date' => 'required|date',
+            'detail' => 'nullable|string',
+            'reference' => 'nullable|string',
+        ]);
+
+        $account = CustomerAccount::findOrFail($accountId);
+        $transaction = CustomerTransaction::findOrFail($transactionId);
+        
+        // Ensure the transaction belongs to the account
+        if ($transaction->customer_id != $account->customer_id) {
+            return redirect()->back()->with('error', 'Transaction does not belong to this account.');
+        }
+
+        // Store original values for account adjustment
+        $originalAmount = $transaction->amount;
+        $originalType = $transaction->transaction_type;
+        
+        // Update the transaction
+        $transaction->amount = $request->amount;
+        $transaction->transaction_date = $request->transaction_date;
+        $transaction->detail = $request->detail;
+        $transaction->reference = $request->reference;
+        $transaction->save();
+
+        // Adjust account balances based on transaction type
+        if ($originalType == 'credit') {
+            // If it was a payment (credit), adjust the paid and pending amounts
+            $account->total_paid -= $originalAmount;
+            $account->pending_balance += $originalAmount;
+        } else {
+            // If it was a purchase (debit), adjust the purchases and pending amounts
+            $account->total_purchases -= $originalAmount;
+            $account->pending_balance -= $originalAmount;
+        }
+
+        // Apply the new values
+        if ($transaction->transaction_type == 'credit') {
+            // If it's now a payment (credit)
+            $account->total_paid += $request->amount;
+            $account->pending_balance -= $request->amount;
+        } else {
+            // If it's now a purchase (debit)
+            $account->total_purchases += $request->amount;
+            $account->pending_balance += $request->amount;
+        }
+
+        // Ensure pending balance doesn't go negative
+        if ($account->pending_balance < 0) {
+            $account->pending_balance = 0;
+        }
+
+        $account->save();
+
+        return redirect()->route('accounts.transactions', $accountId)->with('success', 'Transaction updated successfully.');
     }
 
 }
