@@ -276,4 +276,45 @@ class AccountController extends Controller
         return redirect()->route('accounts.transactions', $accountId)->with('success', 'Transaction updated successfully.');
     }
 
+    /**
+     * Remove the specified transaction from storage.
+     */
+    public function deleteTransaction($accountId, $transactionId)
+    {
+        $account = CustomerAccount::findOrFail($accountId);
+        $transaction = CustomerTransaction::findOrFail($transactionId);
+        
+        // Ensure the transaction belongs to the account
+        if ($transaction->customer_id != $account->customer_id) {
+            return redirect()->back()->with('error', 'Transaction does not belong to this account.');
+        }
+
+        // Store transaction details for account adjustment
+        $amount = $transaction->amount;
+        $type = $transaction->transaction_type;
+        
+        // Adjust account balances before deletion
+        if ($type == 'credit') {
+            // If it was a payment (credit), reduce paid amount and increase pending
+            $account->total_paid -= $amount;
+            $account->pending_balance += $amount;
+        } else {
+            // If it was a purchase (debit), reduce purchases and pending
+            $account->total_purchases -= $amount;
+            $account->pending_balance -= $amount;
+        }
+
+        // Ensure pending balance doesn't go negative
+        if ($account->pending_balance < 0) {
+            $account->pending_balance = 0;
+        }
+
+        $account->save();
+        
+        // Delete the transaction
+        $transaction->delete();
+
+        return redirect()->route('accounts.transactions', $accountId)->with('success', 'Transaction deleted successfully.');
+    }
+
 }

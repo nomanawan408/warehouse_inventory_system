@@ -65,6 +65,7 @@
                                 <th>Paid</th>
                                 <th>Balance</th>
                                 <th>Detail</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -75,6 +76,14 @@
                                     <td>{{ $transaction['credit'] ? 'Rs. ' . number_format($transaction['credit'], 2) : '' }}</td>
                                     <td>Rs. {{ number_format($transaction['balance'], 2) }}</td>
                                     <td>{{ $transaction['reference'] }}</td>
+                                    <td>
+                                        <a href="{{ route('companies.transactions.edit', [$account->id, $transaction['id']]) }}" class="btn btn-sm btn-warning">Edit</a>
+                                        <form action="{{ route('companies.transactions.delete', [$account->id, $transaction['id']]) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this transaction?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                        </form>
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>

@@ -116,7 +116,7 @@
                                             <td>
                                                 <div class="input-group input-group-sm">
                                                     <span class="input-group-text">Rs.</span>
-                                                    <input type="number" class="form-control discount small" value="{{ $item->discount }}" min="0"  />
+                                                    <input type="number" class="form-control discount small" value="{{ number_format($item->discount, 2, '.', '') }}" min="0" step="0.01" />
                                                     <div class="input-group-append">
                                                         <span class="input-group-text small text-muted">/unit</span>
                                                     </div>
@@ -562,7 +562,7 @@ $(document).ready(function() {
                     <td>
                         <div class="input-group input-group-sm">
                             <span class="input-group-text">Rs.</span>
-                            <input type="number" class="form-control discount small" value="0" min="0" step="1" />
+                            <input type="number" class="form-control discount small" value="0.00" min="0" step="0.01" />
                             <div class="input-group-append">
                                 <span class="input-group-text small text-muted">/unit</span>
                             </div>

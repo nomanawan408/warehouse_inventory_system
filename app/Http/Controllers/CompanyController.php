@@ -174,5 +174,126 @@ public function recordPayment(Request $request, $id)
     $account->save();
 
     return redirect()->back()->with('success', 'Payment recorded successfully');
-}
+    }
+
+    /**
+     * Show the form for editing a company transaction.
+     */
+    public function editTransaction($accountId, $transactionId)
+    {
+        $account = CompanyAccount::findOrFail($accountId);
+        $transaction = CompanyTransaction::findOrFail($transactionId);
+        
+        // Ensure the transaction belongs to the company account
+        if ($transaction->company_id != $account->company_id) {
+            return redirect()->back()->with('error', 'Transaction does not belong to this account.');
+        }
+        
+        return view('dashboard.companies.edit_transaction', compact('account', 'transaction'));
+    }
+
+    /**
+     * Update the specified company transaction in storage.
+     */
+    public function updateTransaction(Request $request, $accountId, $transactionId)
+    {
+        $request->validate([
+            'amount' => 'required|numeric|min:0.01',
+            'transaction_date' => 'required|date',
+            'detail' => 'nullable|string',
+            'reference' => 'nullable|string',
+        ]);
+
+        $account = CompanyAccount::findOrFail($accountId);
+        $transaction = CompanyTransaction::findOrFail($transactionId);
+        
+        // Ensure the transaction belongs to the account
+        if ($transaction->company_id != $account->company_id) {
+            return redirect()->back()->with('error', 'Transaction does not belong to this account.');
+        }
+
+        // Store original values for account adjustment
+        $originalAmount = $transaction->amount;
+        $originalType = $transaction->transaction_type;
+        
+        // Update the transaction
+        $transaction->amount = $request->amount;
+        $transaction->transaction_date = $request->transaction_date;
+        $transaction->detail = $request->detail;
+        $transaction->reference = $request->reference;
+        $transaction->save();
+
+        // Adjust account balances based on transaction type
+        if ($originalType == 'debit') {
+            // If it was a payment (debit), adjust the paid and pending amounts
+            $account->total_paid -= $originalAmount;
+            $account->pending_balance += $originalAmount;
+        } else {
+            // If it was a purchase (credit), adjust the purchases and pending amounts
+            $account->total_purchases -= $originalAmount;
+            $account->pending_balance -= $originalAmount;
+        }
+
+        // Apply the new values
+        if ($transaction->transaction_type == 'debit') {
+            // If it's now a payment (debit)
+            $account->total_paid += $request->amount;
+            $account->pending_balance -= $request->amount;
+        } else {
+            // If it's now a purchase (credit)
+            $account->total_purchases += $request->amount;
+            $account->pending_balance += $request->amount;
+        }
+
+        // Ensure pending balance doesn't go negative
+        if ($account->pending_balance < 0) {
+            $account->pending_balance = 0;
+        }
+
+        $account->save();
+
+        return redirect()->route('companies.transactions', $accountId)->with('success', 'Transaction updated successfully.');
+    }
+
+    /**
+     * Remove the specified company transaction from storage.
+     */
+    public function deleteTransaction($accountId, $transactionId)
+    {
+        $account = CompanyAccount::findOrFail($accountId);
+        $transaction = CompanyTransaction::findOrFail($transactionId);
+        
+        // Ensure the transaction belongs to the account
+        if ($transaction->company_id != $account->company_id) {
+            return redirect()->back()->with('error', 'Transaction does not belong to this account.');
+        }
+
+        // Store transaction details for account adjustment
+        $amount = $transaction->amount;
+        $type = $transaction->transaction_type;
+        
+        // Adjust account balances before deletion
+        if ($type == 'debit') {
+            // If it was a payment (debit), reduce paid amount and increase pending
+            $account->total_paid -= $amount;
+            $account->pending_balance += $amount;
+        } else {
+            // If it was a purchase (credit), reduce purchases and pending
+            $account->total_purchases -= $amount;
+            $account->pending_balance -= $amount;
+        }
+
+        // Ensure pending balance doesn't go negative
+        if ($account->pending_balance < 0) {
+            $account->pending_balance = 0;
+        }
+
+        $account->save();
+        
+        // Delete the transaction
+        $transaction->delete();
+
+        return redirect()->route('companies.transactions', $accountId)->with('success', 'Transaction deleted successfully.');
+    }
+
 }

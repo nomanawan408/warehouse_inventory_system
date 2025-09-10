@@ -68,6 +68,7 @@ Route::middleware('auth')->group(function () {
     // Edit and update customer transactions
     Route::get('/accounts/{id}/transactions/{transactionId}/edit', [AccountController::class, 'editTransaction'])->name('accounts.transactions.edit');
     Route::put('/accounts/{id}/transactions/{transactionId}', [AccountController::class, 'updateTransaction'])->name('accounts.transactions.update');
+    Route::delete('/accounts/{id}/transactions/{transactionId}', [AccountController::class, 'deleteTransaction'])->name('accounts.transactions.delete');
 
     // Add Pending Amount to Account
     Route::post('/accounts/{id}/pending', [AccountController::class, 'storePendingAmount'])->name('accounts.pending.store');
@@ -76,6 +77,9 @@ Route::middleware('auth')->group(function () {
     // Company Routes
     Route::get('/companies/accounts', [CompanyController::class, 'accounts'])->name('companies.accounts');
     Route::get('/companies/{id}/transactions', [CompanyController::class, 'transactions'])->name('companies.transactions');
+    Route::get('/companies/{id}/transactions/{transactionId}/edit', [CompanyController::class, 'editTransaction'])->name('companies.transactions.edit');
+    Route::put('/companies/{id}/transactions/{transactionId}', [CompanyController::class, 'updateTransaction'])->name('companies.transactions.update');
+    Route::delete('/companies/{id}/transactions/{transactionId}', [CompanyController::class, 'deleteTransaction'])->name('companies.transactions.delete');
     Route::post('/companies/{id}/record-payment', [CompanyController::class, 'recordPayment'])->name('companies.record-payment');
 
     Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');

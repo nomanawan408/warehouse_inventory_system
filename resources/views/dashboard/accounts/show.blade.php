@@ -84,6 +84,11 @@
                                     <td>{{ $transaction['detail'] }}</td>
                                     <td>
                                         <a href="{{ route('accounts.transactions.edit', [$account->id, $transaction['id']]) }}" class="btn btn-sm btn-warning">Edit</a>
+                                        <form action="{{ route('accounts.transactions.delete', [$account->id, $transaction['id']]) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this transaction?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                        </form>
                                     </td>
                                 </tr>
                             @endforeach
