@@ -11,7 +11,7 @@
                     </div>
                     
                     <!-- Customer Accounts Summary Cards -->
-                    <div class="row mb-4">
+                    {{-- <div class="row mb-4">
                         <div class="col-md-4">
                             <div class="card shadow-sm border-primary h-100">
                                 <div class="card-body text-center">
@@ -39,7 +39,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> --}}
                     <table id="customerAccountTable" class="table table-bordered table-hover table-striped mt-3">
                         <thead class="table-dark">
                             <tr>

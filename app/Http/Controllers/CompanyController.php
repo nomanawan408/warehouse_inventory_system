@@ -295,5 +295,5 @@ public function recordPayment(Request $request, $id)
 
         return redirect()->route('companies.transactions', $accountId)->with('success', 'Transaction deleted successfully.');
     }
-
 }
+
