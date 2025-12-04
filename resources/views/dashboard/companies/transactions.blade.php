@@ -10,7 +10,7 @@
                         <a href="{{ route('companies.accounts') }}" class="btn btn-secondary">Back to Company Accounts</a>
                     </div>
                     
-                    <div class="row mb-4">
+                    {{-- <div class="row mb-4">
                         <div class="col-md-3">
                             <div class="card shadow-sm border-primary h-100">
                                 <div class="card-body text-center">
@@ -55,7 +55,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> --}}
 
                     <table id="companyAccountTable" class="table table-bordered table-hover table-striped mt-3">
                         <thead class="table-dark">

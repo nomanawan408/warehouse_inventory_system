@@ -62,7 +62,7 @@
                                 </div>
                             </div>
                         </div> --}}
-                    </div>
+                    {{-- </div> --}}
                     <table id="customerAccountTable" class="table table-bordered table-hover table-striped mt-3">
                         <thead class="table-dark">
                             <tr>
