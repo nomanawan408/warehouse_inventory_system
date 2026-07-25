@@ -89,10 +89,10 @@
                                                                 <label for="amount" class="form-label">Payment Amount (Rs.)</label>
                                                                 <input type="number" step="0.01" class="form-control" id="amount" name="amount" required min="0.01" max="{{ $company->pending_balance }}">
                                                             </div>
-                                                            <div class="mb-3">
-                                                                <label for="payment_date" class="form-label">Payment Date</label>
-                                                                <input type="date" class="form-control" id="payment_date" name="payment_date" required value="{{ date('Y-m-d') }}">
-                                                            </div>
+<div class="mb-3">
+                                                                 <label for="payment_date" class="form-label">Payment Date & Time</label>
+                                                                 <input type="datetime-local" class="form-control" id="payment_date" name="payment_date" required value="{{ now()->format('Y-m-d\TH:i') }}">
+                                                             </div>
                                                             <div class="mb-3">
                                                                 <label for="notes" class="form-label">Notes</label>
                                                                 <textarea class="form-control" id="notes" name="notes" rows="2"></textarea>

@@ -39,8 +39,8 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="transaction_date" class="form-label">Transaction Date</label>
-                                    <input type="date" class="form-control" id="transaction_date" name="transaction_date" value="{{ old('transaction_date', $transaction->transaction_date->format('Y-m-d')) }}" required>
+                                    <label for="transaction_date" class="form-label">Transaction Date & Time</label>
+                                    <input type="datetime-local" class="form-control" id="transaction_date" name="transaction_date" value="{{ old('transaction_date', $transaction->transaction_date->format('Y-m-d\TH:i')) }}" required>
                                 </div>
                             </div>
                             <div class="col-md-6">

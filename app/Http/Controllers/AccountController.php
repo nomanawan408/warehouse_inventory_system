@@ -26,7 +26,7 @@ class AccountController extends Controller
         // Validate the request
         $request->validate([
             'payment_amount' => 'required|numeric|min:1',
-            'payment_date' => 'required|date',
+            'payment_date' => 'required|date_format:Y-m-d\TH:i',
         ]);
     
         // Find the customer's account
@@ -163,7 +163,7 @@ class AccountController extends Controller
         // Validate the request
         $request->validate([
             'pending_amount' => 'required|numeric|min:1',
-            'pending_date' => 'required|date',
+            'pending_date' => 'required|date_format:Y-m-d\TH:i',
         ]);
 
         // Find the customer's account
@@ -182,7 +182,7 @@ class AccountController extends Controller
             'payment_method' => 'pending',
             'detail' => 'Pending amount added',
             'reference' => 'Manual pending amount entry',
-            'transaction_date' => now(),
+            'transaction_date' => $request->pending_date,
         ]);
 
         // Update the customer's account pending balance
@@ -220,7 +220,7 @@ class AccountController extends Controller
         // Validate the request
         $request->validate([
             'amount' => 'required|numeric|min:0.01',
-            'transaction_date' => 'required|date',
+            'transaction_date' => 'required|date_format:Y-m-d\TH:i',
             'detail' => 'nullable|string',
             'reference' => 'nullable|string',
         ]);

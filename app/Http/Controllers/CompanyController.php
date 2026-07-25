@@ -149,9 +149,9 @@ public function recordPayment(Request $request, $id)
 {
     $request->validate([
         'amount' => 'required|numeric|min:0',
-        'payment_date' => 'required|date',
+        'payment_date' => 'required|date_format:Y-m-d\TH:i',
         'notes' => 'nullable|string',
-        'reference' => 'nullable|string|max:255' // Added reference validation
+        'reference' => 'nullable|string|max:255'
     ]);
 
     $company = Company::findOrFail($id);
@@ -199,7 +199,7 @@ public function recordPayment(Request $request, $id)
     {
         $request->validate([
             'amount' => 'required|numeric|min:0.01',
-            'transaction_date' => 'required|date',
+            'transaction_date' => 'required|date_format:Y-m-d\TH:i',
             'detail' => 'nullable|string',
             'reference' => 'nullable|string',
         ]);

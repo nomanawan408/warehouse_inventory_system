@@ -89,10 +89,10 @@
                                                                         <label for="pendingAmount" class="form-label">Pending Amount</label>
                                                                         <input type="number" class="form-control" id="pendingAmount" name="pending_amount" required>
                                                                     </div>
-                                                                    <div class="mb-3">
-                                                                        <label for="pendingDate" class="form-label">Pending Date</label>
-                                                                        <input type="date" class="form-control" id="pendingDate" name="pending_date" value="{{ now()->format('Y-m-d') }}" required>
-                                                                    </div>
+<div class="mb-3">
+                                                                         <label for="pendingDate" class="form-label">Pending Date & Time</label>
+                                                                         <input type="datetime-local" class="form-control" id="pendingDate" name="pending_date" value="{{ now()->format('Y-m-d\TH:i') }}" required>
+                                                                     </div>
                                                                     <button type="submit" class="btn btn-warning">Submit</button>
                                                                 </form>
                                                             </div>
@@ -115,10 +115,10 @@
                                                                         <label for="paymentAmount" class="form-label">Payment Amount</label>
                                                                         <input type="number" class="form-control" id="paymentAmount" name="payment_amount" required>
                                                                     </div>
-                                                                    <div class="mb-3">
-                                                                        <label for="paymentDate" class="form-label">Payment Date</label>
-                                                                        <input type="date" class="form-control" id="paymentDate" name="payment_date" value="{{ now()->format('Y-m-d') }}" required>
-                                                                    </div>
+<div class="mb-3">
+                                                                         <label for="paymentDate" class="form-label">Payment Date & Time</label>
+                                                                         <input type="datetime-local" class="form-control" id="paymentDate" name="payment_date" value="{{ now()->format('Y-m-d\TH:i') }}" required>
+                                                                     </div>
                                                                     <button type="submit" class="btn btn-primary">Submit</button>
                                                                 </form>
                                                             </div>
