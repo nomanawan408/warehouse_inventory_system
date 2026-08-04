@@ -22,6 +22,7 @@ class CustomerController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'discount' => 'nullable|numeric|min:0|max:100',
         ]);
 
         $customer = new Customer();
@@ -30,6 +31,7 @@ class CustomerController extends Controller
         $customer->phone_no = $request->phone_no;
         $customer->address = $request->address;
         $customer->cnic = $request->cnic;
+        $customer->discount = $request->discount ?? 0;
         $customer->save();
 
         $account = new CustomerAccount();
@@ -54,6 +56,7 @@ class CustomerController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'discount' => 'nullable|numeric|min:0|max:100',
         ]);
 
         $customer = Customer::find($id);
@@ -62,6 +65,7 @@ class CustomerController extends Controller
         $customer->phone_no = $request->phone_no;
         $customer->address = $request->address;
         $customer->cnic = $request->cnic;
+        $customer->discount = $request->discount ?? 0;
         $customer->save();
 
         return redirect()->route('customers.index')->with('success', 'Customer updated successfully');
@@ -87,6 +91,15 @@ class CustomerController extends Controller
                 ->get();
 
         return view('dashboard.partials.table', compact('customers'))->render();
+    }
+
+    public function getDiscount(Request $request)
+    {
+        $customer = Customer::find($request->customer_id);
+        if ($customer) {
+            return response()->json(['discount' => $customer->discount]);
+        }
+        return response()->json(['discount' => 0]);
     }
 
 }

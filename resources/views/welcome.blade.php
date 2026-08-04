@@ -68,6 +68,13 @@
                             </span>
                         </div>
                         <div class="summary-item">
+                            <span class="summary-label">Discount (%):</span>
+                            <div class="input-group mt-2">
+                                <input type="number" value="0.00" class="form-control" id="discount-percent" placeholder="Enter discount %" min="0" max="100" step="0.01">
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                        <div class="summary-item">
                             <span class="summary-label">Discount:</span>
                             <span id="discount" class="summary-value">
                                 @if (isset($discount))
@@ -307,6 +314,7 @@
             // Reset cart
             $('#reset-cart').on('click', function() {
                 localStorage.removeItem('cart');
+                $('#discount-percent').val('0.00');
                 loadCartFromSession();
             });
 
@@ -452,6 +460,12 @@
                     totalDiscount += itemDiscount;
                 });
 
+                // Apply customer discount percentage if set
+                const discountPercent = parseFloat($('#discount-percent').val()) || 0;
+                if (discountPercent > 0) {
+                    totalDiscount = subTotal * (discountPercent / 100);
+                }
+
                 netTotal = subTotal - totalDiscount;
 
                 // Animate the changing values
@@ -557,6 +571,11 @@
                 updateSession(productId, qty, discount);
             });
 
+            // Customer discount percentage change event listener
+            $(document).on('change', '#discount-percent', function() {
+                updateDiscountFromPercent();
+            });
+
             // Function to remove an item from cart
             $(document).on('click', '.remove-btn', function() {
                 let productId = $(this).closest('tr').data('id');
@@ -612,8 +631,15 @@
                     
                     subTotal += itemSubtotal;
                     totalDiscount += itemDiscount;
-                    netTotal += (itemSubtotal - itemDiscount);
                 });
+
+                // Apply customer discount percentage if set
+                const discountPercent = parseFloat($('#discount-percent').val()) || 0;
+                if (discountPercent > 0) {
+                    totalDiscount = subTotal * (discountPercent / 100);
+                }
+
+                netTotal = subTotal - totalDiscount;
 
                 // Show processing animation
                 $('#processing').html(`
@@ -640,6 +666,7 @@
                         cart: cart,
                         sub_total: subTotal.toFixed(2),
                         discount: totalDiscount.toFixed(2),
+                        discount_percent: discountPercent.toFixed(2),
                         net_total: netTotal.toFixed(2),
                         paid_amount: paidAmount.toFixed(2)
                     },
@@ -795,16 +822,66 @@
             }
             
             // Customer selection
-            $(document).on('click', '.customer-item', function() {
-                const customerId = $(this).data('id');
-                const customerName = $(this).find('.customer-name').text();
+                        $(document).on('click', '.customer-item', function() {
+                            const customerId = $(this).data('id');
+                            const customerName = $(this).find('.customer-name').text();
+
+                            $('#selected-customer-id').val(customerId);
+                            $('#customer-search').val(customerName);
+                            $('#customer-dropdown').hide();
+
+                            showToast(`Selected customer: ${customerName}`, "success");
+
+                            // Fetch customer discount and apply it
+                            fetchCustomerDiscount(customerId);
+                        });
+
+                        // Fetch customer discount from server
+                        function fetchCustomerDiscount(customerId) {
+                            $.ajax({
+                                url: "/customers/discount",
+                                type: "GET",
+                                data: { customer_id: customerId },
+                                success: function(response) {
+                                    const discountPercent = parseFloat(response.discount) || 0;
+                                    $('#discount-percent').val(discountPercent.toFixed(2));
+                                    updateDiscountFromPercent();
+                                },
+                                error: function(xhr) {
+                                    console.error("Error fetching customer discount:", xhr.responseText);
+                                    $('#discount-percent').val('0.00');
+                                    updateDiscountFromPercent();
+                                }
+                            });
+                        }
+
+                        // Update discount amount from percentage
+                        function updateDiscountFromPercent() {
+                            let subTotal = 0;
+                            let cart = JSON.parse(localStorage.getItem('cart')) || [];
                 
-                $('#selected-customer-id').val(customerId);
-                $('#customer-search').val(customerName);
-                $('#customer-dropdown').hide();
+                            cart.forEach(item => {
+                                let itemSubtotal = item.qty * item.price;
+                                subTotal += itemSubtotal;
+                            });
+
+                            const discountPercent = parseFloat($('#discount-percent').val()) || 0;
+                            const totalDiscount = subTotal * (discountPercent / 100);
+
+                            $('#discount').text(`Rs. ${totalDiscount.toFixed(2)}`);
+                            updateNetTotal();
+                        }
+
+                        // Update net total based on subtotal and discount
+                        function updateNetTotal() {
+                            const subTotalText = $('#sub-total').text().replace('Rs.', '').trim();
+                            const discountText = $('#discount').text().replace('Rs.', '').trim();
+                            const subTotal = parseFloat(subTotalText) || 0;
+                            const discount = parseFloat(discountText) || 0;
+                            const netTotal = subTotal - discount;
                 
-                showToast(`Selected customer: ${customerName}`, "success");
-            });
+                            $('#net-total').html(`<b>Rs. ${netTotal.toFixed(2)}</b>`);
+                        }
         });
     </script>
 @endsection

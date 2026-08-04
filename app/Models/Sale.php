@@ -13,6 +13,7 @@ class Sale extends Model
         'customer_id',
         'total_amount',
         'discount',
+        'discount_percent',
         'tax',
         'net_total',
         'amount_paid',

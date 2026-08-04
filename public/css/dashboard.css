@@ -1,3 +1,16 @@
+/* App palette derived from the header gradient (#6a11cb -> #2575fc) */
+:root{
+    --brand-start: #6a11cb;
+    --brand-end: #2575fc;
+    --brand-gradient: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    --brand-primary: #2575fc;
+    --brand-primary-rgb: 37, 117, 252;
+}
+
+body{
+    background: #f4f5fb;
+}
+
 .product-search-container {
     position: relative;
     margin-bottom: 1.5rem;
@@ -19,8 +32,8 @@
 }
 
 #search:focus {
-    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
-    border-color: #80bdff;
+    box-shadow: 0 3px 10px rgba(var(--brand-primary-rgb), 0.2);
+    border-color: var(--brand-primary);
 }
 
 #search-results {
@@ -65,7 +78,7 @@
 
 .product-price {
     font-weight: 700;
-    color: #2c3e50;
+    color: var(--brand-start);
     margin-left: 10px;
 }
 

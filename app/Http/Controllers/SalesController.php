@@ -88,6 +88,7 @@ class SalesController extends Controller
             'cart.*.discount' => 'required|numeric|min:0',
             'sub_total' => 'required|numeric|min:0',
             'discount' => 'required|numeric|min:0',
+            'discount_percent' => 'nullable|numeric|min:0|max:100',
             'net_total' => 'required|numeric|min:0',
             'paid_amount' => 'nullable|numeric|min:0',
         ]);
@@ -97,13 +98,14 @@ class SalesController extends Controller
         try {
             // 1️⃣ Create Sale Entry
             $sale = Sale::create([
-            'customer_id'    => $validated['customer_id'],
-            'total_amount'   => $validated['sub_total'],
-            'discount'       => $validated['discount'],
-            'tax'            => 0, // Assuming tax is not provided in the request
-            'net_total'      => $validated['sub_total'] - $validated['discount'] - 0, // Assuming tax is 0
-            'amount_paid'    => $validated['paid_amount'],
-            'pending_amount' => max(0, $validated['net_total'] - $validated['paid_amount']),
+            'customer_id'      => $validated['customer_id'],
+            'total_amount'     => $validated['sub_total'],
+            'discount'         => $validated['discount'],
+            'discount_percent' => $validated['discount_percent'] ?? 0,
+            'tax'              => 0, // Assuming tax is not provided in the request
+            'net_total'        => $validated['sub_total'] - $validated['discount'] - 0, // Assuming tax is 0
+            'amount_paid'      => $validated['paid_amount'],
+            'pending_amount'   => max(0, $validated['net_total'] - $validated['paid_amount']),
             ]);
 
             // 2️⃣ Process Sale Items and Deduct Stock

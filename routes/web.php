@@ -61,6 +61,7 @@ Route::middleware('auth')->group(function () {
 
     // Stock Routes
     Route::get('/customers/search', [CustomerController::class, 'search'])->name('customers.search');
+    Route::get('/customers/discount', [CustomerController::class, 'getDiscount'])->name('customers.discount');
 
     //Add payments to customer accounts 
     Route::get('/accounts/{id}/payments/add', [AccountController::class, 'addPayment'])->name('accounts.payments.add');

@@ -5,6 +5,7 @@
             <td>{{ $customer->business_name }}</td>
             <td>{{ $customer->phone_no }}</td>
             <td>{{ $customer->cnic }}</td>
+            <td>{{ number_format($customer->discount, 2) }}%</td>
             <td>
                 <div class="d-flex">
                     <a href="{{ route('customers.edit', $customer->id) }}" class="btn btn-warning btn-sm me-2">Edit</a>
@@ -19,6 +20,6 @@
     @endforeach
 @else
     <tr>
-        <td colspan="5" class="text-center">No customers found.</td>
+        <td colspan="6" class="text-center">No customers found.</td>
     </tr>
 @endif

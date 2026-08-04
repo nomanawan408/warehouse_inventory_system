@@ -51,6 +51,18 @@
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
+
+                                <div class="mb-3">
+                                    <label for="discount" class="form-label">Discount (%)</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control @error('discount') is-invalid @enderror" id="discount" name="discount" value="{{ old('discount', 0) }}" min="0" max="100" step="0.01">
+                                        <span class="input-group-text">%</span>
+                                        @error('discount')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                    <div class="form-text">Default discount percentage applied automatically during checkout</div>
+                                </div>
                             </div>
                         </div>
 

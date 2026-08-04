@@ -7,7 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 class Customer extends Model
 {
     //
-   
+    protected $fillable = [
+        'name',
+        'business_name',
+        'phone_no',
+        'address',
+        'cnic',
+        'discount'
+    ];
+
     public function account(){
         return $this->hasOne(CustomerAccount::class);
     }
