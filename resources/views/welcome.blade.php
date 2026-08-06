@@ -104,10 +104,10 @@
                     </div>
                     <div class="d-grid gap-2 mt-4">
                         
-                        <button class="btn btn-lg btn-success btn-action shadow-lg" id="checkout-btn">
+                        <button class="btn btn-lg btn-action shadow-lg" id="checkout-btn" style="background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); color: #fff; border: none;">
                             <i class="fas fa-check-circle me-2"></i>Complete Sale
                         </button>
-                        <button class="btn btn-secondary btn-action" id="reset-cart">
+                        <button class="btn btn-secondary btn-action" id="reset-cart" style="background: #495057; border-color: #495057;">
                             <i class="fas fa-trash me-2"></i>Reset Cart
                         </button>
                     </div>
@@ -315,6 +315,8 @@
             $('#reset-cart').on('click', function() {
                 localStorage.removeItem('cart');
                 $('#discount-percent').val('0.00');
+                $('#selected-customer-id').val('');
+                $('#customer-search').val('');
                 loadCartFromSession();
             });
 
@@ -353,20 +355,85 @@
                     existingProduct.qty += 1;
                     showToast(`Added another ${name} to cart`, "success");
                 } else {
-                    cart.push({
+                    let newItem = {
                         id,
                         name,
                         price,
                         companyName,
                         qty: 1,
                         discount: 0,
-                        stockQuantity: quantity // Store stock quantity for validation
-                    });
+                        stockQuantity: quantity
+                    };
+                    cart.push(newItem);
                     showToast(`Added ${name} to cart`, "success");
                 }
 
-                localStorage.setItem('cart', JSON.stringify(cart)); // Save cart to session
-                renderCart(); // Update UI
+                localStorage.setItem('cart', JSON.stringify(cart));
+                renderCart();
+
+                // Auto-fetch historical discount only if a valid customer is selected
+                let customerId = $('#selected-customer-id').val();
+                if (customerId && customerId !== '' && !isNaN(customerId)) {
+                    fetchItemDiscount(customerId, id);
+                }
+            }
+
+            // Fetch last per-unit discount for a specific customer+product
+            function fetchItemDiscount(customerId, productId) {
+                $.ajax({
+                    url: "/sales/last-discount",
+                    type: "GET",
+                    data: { customer_id: customerId, product_ids: [productId] },
+                    success: function(response) {
+                        let discount = parseFloat(response.discounts[productId]) || 0;
+                        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+                        let item = cart.find(i => parseInt(i.id) === parseInt(productId));
+                        if (item) {
+                            item.discount = discount;
+                            localStorage.setItem('cart', JSON.stringify(cart));
+                            renderCart();
+                            if (discount > 0) {
+                                showToast(`Applied previous discount: Rs. ${discount.toFixed(2)}/unit for ${item.name}`, "info");
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Batch-fetch discounts for ALL cart items in a single request
+            function refreshCartDiscounts(customerId) {
+                let cart = JSON.parse(localStorage.getItem('cart')) || [];
+                if (cart.length === 0) return;
+
+                // Instantly zero out all discounts while loading
+                cart.forEach(item => { item.discount = 0; });
+                localStorage.setItem('cart', JSON.stringify(cart));
+                renderCart();
+
+                let productIds = cart.map(item => item.id);
+
+                $.ajax({
+                    url: "/sales/last-discount",
+                    type: "GET",
+                    data: { customer_id: customerId, product_ids: productIds },
+                    success: function(response) {
+                        let discounts = response.discounts || {};
+                        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+                        let changed = false;
+                        cart.forEach(item => {
+                            let d = parseFloat(discounts[item.id]) || 0;
+                            if (d !== item.discount) {
+                                item.discount = d;
+                                changed = true;
+                            }
+                        });
+                        if (changed) {
+                            localStorage.setItem('cart', JSON.stringify(cart));
+                            renderCart();
+                            showToast("Discounts updated from customer history", "info");
+                        }
+                    }
+                });
             }
 
             // Function to load cart from session and display it
@@ -703,6 +770,8 @@
                         // Reset form
                         loadCartFromSession();
                         $('#customer-search').val("");
+                        $('#selected-customer-id').val("");
+                        $('#discount-percent').val('0.00');
                         $('#paid-amount').val("0.00");
                         
                         // Re-enable checkout button
@@ -768,6 +837,17 @@
                 const query = $(this).val().toLowerCase().trim();
                 
                 if (query.length === 0) {
+                    // Customer cleared — reset all item discounts to 0
+                    $('#selected-customer-id').val('');
+                    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+                    let changed = false;
+                    cart.forEach(item => {
+                        if (item.discount !== 0) { item.discount = 0; changed = true; }
+                    });
+                    if (changed) {
+                        localStorage.setItem('cart', JSON.stringify(cart));
+                        renderCart();
+                    }
                     populateAllCustomers();
                 } else {
                     filterCustomers(query);
@@ -834,6 +914,9 @@
 
                             // Fetch customer discount and apply it
                             fetchCustomerDiscount(customerId);
+
+                            // Re-evaluate per-item discounts from history for this customer
+                            refreshCartDiscounts(customerId);
                         });
 
                         // Fetch customer discount from server

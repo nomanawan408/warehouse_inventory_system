@@ -21,7 +21,7 @@
                             </div>
                         </div>
                         <div class="col-md-3">
-                            <div class="card bg-primary text-white">
+                            <div class="card text-white" style="background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);">
                                 <div class="card-body">
                                     <h5 class="card-title">Total Debits/Purchases</h5>
                                     <h3 class="card-text text-end">Rs. {{ number_format(array_sum(array_column($formattedTransactions, 'debit')), 2) }}</h3>

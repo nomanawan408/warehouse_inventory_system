@@ -7,7 +7,7 @@
             <div class="col-md-12">
                 <div class="container-box">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h4>Sales List</h4>
+                        <h4 class="fw-bold" style="color: var(--primary-start);">Sales List</h4>
                     </div>
                     
                     <div class="mb-3">
@@ -53,16 +53,16 @@
                                     <td>{{ $sale->updated_at }}</td>
                                     <td>
                                         <div class="d-flex gap-2 justify-content-start align-items-center">
-                                            <button class="btn btn-success btn-sm shadow-sm rounded-pill view-invoice" 
-                                                    style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; padding: 0;" 
+                                            <button class="btn btn-sm shadow-sm rounded-pill view-invoice" 
+                                                    style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; padding: 0; background: linear-gradient(135deg, #198754, #20c997); border: none; color: #fff;" 
                                                     data-sale-id="{{ $sale->id }}" 
                                                     data-bs-toggle="tooltip" 
                                                     data-bs-placement="top" 
                                                     title="View Invoice">
                                                 <i class="ti ti-file-invoice" style="font-size: 1.2rem;"></i>
                                             </button>
-                                            <a href="{{ route('sales.edit', $sale->id) }}" class="btn btn-primary btn-sm shadow-sm rounded-pill" 
-                                                    style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; padding: 0;" 
+                                            <a href="{{ route('sales.edit', $sale->id) }}" class="btn btn-sm shadow-sm rounded-pill" 
+                                                    style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; padding: 0; background: linear-gradient(135deg, #6a11cb, #2575fc); border: none; color: #fff;" 
                                                     data-bs-toggle="tooltip" 
                                                     data-bs-placement="top" 
                                                     title="Edit Invoice">

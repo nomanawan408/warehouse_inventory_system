@@ -11,6 +11,7 @@ use App\Models\Product;
 use App\Models\Payment;
 use App\Models\CustomerAccount;
 use App\Models\CustomerTransaction;
+use App\Models\CustomerProductDiscount;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -140,9 +141,17 @@ class SalesController extends Controller
                 'quantity'      => $item['qty'],
                 'price'         => $item['price'],
                 'discount'      => $item['discount'],
-                'profit_margin' => $profit_after_discount, // Store the accurate profit after discount
+                'profit_margin' => $profit_after_discount,
                 'total'         => $total_after_discount,
             ]);
+
+            // Save per-unit discount to customer_product_discounts
+            if ($item['discount'] > 0) {
+                CustomerProductDiscount::updateOrCreate(
+                    ['customer_id' => $validated['customer_id'], 'product_id' => $item['id']],
+                    ['discount' => $item['discount']]
+                );
+            }
 
             }
 
@@ -315,6 +324,14 @@ class SalesController extends Controller
                 ]);
                 
                 $sale->items()->save($saleItem);
+
+                // Save per-unit discount to customer_product_discounts
+                if ($item['discount'] > 0) {
+                    CustomerProductDiscount::updateOrCreate(
+                        ['customer_id' => $validated['customer_id'], 'product_id' => $item['id']],
+                        ['discount' => $item['discount']]
+                    );
+                }
             }
 
             // 5️⃣ Update Customer Account & Transactions
@@ -433,5 +450,27 @@ class SalesController extends Controller
         \Log::info('Raw product search results:', ['products' => $products->toArray()]);
             
         return response()->json($products);
+    }
+
+    public function getLastDiscount(Request $request)
+    {
+        $customerId = $request->input('customer_id');
+        $productIds = $request->input('product_ids');
+
+        if (!$customerId || !is_array($productIds) || empty($productIds)) {
+            return response()->json(['discounts' => []]);
+        }
+
+        $records = CustomerProductDiscount::where('customer_id', $customerId)
+            ->whereIn('product_id', $productIds)
+            ->get()
+            ->keyBy('product_id');
+
+        $output = [];
+        foreach ($productIds as $pid) {
+            $output[$pid] = isset($records[$pid]) ? (float) $records[$pid]->discount : 0;
+        }
+
+        return response()->json(['discounts' => $output]);
     }
 }

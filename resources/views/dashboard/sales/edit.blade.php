@@ -32,13 +32,13 @@
     <div class="row">
         <div class="col-md-12 offset-md-0">
             <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <div class="card-header text-white d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);">
                     <h5 class="card-title m-0">Edit Invoice #{{ str_pad($sale->id, 3, '0', STR_PAD_LEFT) }}</h5>
                     <div>
-                        <a href="{{ route('sales.print', $sale->id) }}" class="btn btn-light btn-sm" target="_blank">
+                        <a href="{{ route('sales.print', $sale->id) }}" class="btn btn-sm" style="background: rgba(255,255,255,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.3);" target="_blank">
                             <i class="ti ti-printer"></i> Print
                         </a>
-                        <a href="{{ route('sales.index') }}" class="btn btn-light btn-sm">
+                        <a href="{{ route('sales.index') }}" class="btn btn-sm" style="background: rgba(255,255,255,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.3);">
                             <i class="ti ti-arrow-left"></i> Back
                         </a>
                     </div>
@@ -49,7 +49,6 @@
                         <input type="hidden" name="_token" value="{{ csrf_token() }}">
                         <meta name="csrf-token" content="{{ csrf_token() }}">
                         <input type="hidden" id="sale-id" value="{{ $sale->id }}">
-                        <input type="hidden" id="customer" value="{{ $sale->customer_id }}">
                         <input type="hidden" id="invoice-calculations" value="">
 
                         <!-- Customer Information -->
@@ -59,11 +58,21 @@
                                 <div class="border rounded p-3">
                                     <div class="form-group">
                                         <label>Customer Name</label>
-                                        <input type="text" class="form-control" value="{{ $sale->customer->name }}" readonly>
+                                        <select class="form-control select2" id="customer-select" name="customer_id">
+                                            <option value="">-- Select Customer --</option>
+                                            @foreach($customers as $customer)
+                                                <option value="{{ $customer->id }}" 
+                                                    data-phone="{{ $customer->phone_no }}" 
+                                                    {{ $customer->id == $sale->customer_id ? 'selected' : '' }}>
+                                                    {{ $customer->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        <input type="hidden" id="customer" value="{{ $sale->customer_id }}">
                                     </div>
                                     <div class="form-group mt-2">
                                         <label>Contact</label>
-                                        <input type="text" class="form-control" value="{{ $sale->customer->phone }}" readonly>
+                                        <input type="text" class="form-control" id="customer-contact" value="{{ $sale->customer->phone_no ?? '' }}">
                                     </div>
                                 </div>
                             </div>
@@ -147,7 +156,7 @@
 
                         <!-- Add Product Button -->
                         <div class="mb-4">
-                            <button type="button" class="btn btn-success" id="add-product-btn">
+                            <button type="button" class="btn" id="add-product-btn" style="background: linear-gradient(135deg, #198754, #20c997); color: #fff; border: none;">
                                 <i class="ti ti-plus"></i> Add Product
                             </button>
                         </div>
@@ -231,7 +240,7 @@
 
                         <!-- Submit Button -->
                         <div class="mt-4">
-                            <button type="submit" id="submit-edit-invoice" class="btn btn-primary">
+                            <button type="submit" id="submit-edit-invoice" class="btn" style="background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); color: #fff; border: none;">
                                 <i class="ti ti-device-floppy"></i> Update Invoice
                             </button>
                         </div>
@@ -266,8 +275,9 @@
 @endsection
 
 @push('scripts')
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script>
 $(document).ready(function() {
@@ -280,6 +290,54 @@ $(document).ready(function() {
 
     // Initialize Bootstrap components
     var addProductModal = new bootstrap.Modal(document.getElementById('addProductModal'));
+    
+    // Initialize Select2 for customer dropdown
+    $('#customer-select').select2({
+        theme: 'bootstrap-5',
+        width: '100%',
+        placeholder: '-- Select Customer --',
+        allowClear: true
+    });
+
+    // Handle customer selection change
+    $('#customer-select').on('change', function() {
+        const selectedOption = $(this).find('option:selected');
+        const phone = selectedOption.data('phone') || '';
+        const customerId = $(this).val();
+        
+        $('#customer-contact').val(phone);
+        $('#customer').val(customerId);
+
+        // Instantly reset all item discounts to 0
+        $('.item').each(function() {
+            $(this).find('.discount').val('0.00');
+        });
+        calculateTotals();
+
+        // Batch-fetch historical discounts for all items in one request
+        if (customerId) {
+            let productIds = [];
+            $('.item').each(function() {
+                productIds.push($(this).find('.product-id').val());
+            });
+
+            $.ajax({
+                url: "/sales/last-discount",
+                type: "GET",
+                data: { customer_id: customerId, product_ids: productIds },
+                success: function(response) {
+                    let discounts = response.discounts || {};
+                    $('.item').each(function() {
+                        const row = $(this);
+                        const productId = row.find('.product-id').val();
+                        let d = parseFloat(discounts[productId]) || 0;
+                        row.find('.discount').val(d.toFixed(2));
+                    });
+                    calculateTotals();
+                }
+            });
+        }
+    });
     
     // Initialize toastr options
     toastr.options = {
@@ -534,10 +592,8 @@ $(document).ready(function() {
         const product = products.find(p => p.id === productId);
         
         if (product) {
-            // Log the product data to see what we're working with
             console.log('Selected product:', product);
             
-            // Ensure prices are valid numbers or use defaults
             const sellingPrice = parseFloat(product.sale_price) || 0;
             const costPrice = parseFloat(product.purchase_price) || 0;
             
@@ -593,6 +649,25 @@ $(document).ready(function() {
             addProductModal.hide();
             $('#product-search').val('');
             $('.product-list').html('');
+
+            // Fetch historical discount for this customer+product
+            const customerId = $('#customer').val();
+            if (customerId && customerId !== '' && !isNaN(customerId)) {
+                $.ajax({
+                    url: "/sales/last-discount",
+                    type: "GET",
+                    data: { customer_id: customerId, product_ids: [product.id] },
+                    success: function(response) {
+                        let discount = parseFloat(response.discounts[product.id]) || 0;
+                        if (discount > 0) {
+                            const lastRow = $('#cart-items tr:last');
+                            lastRow.find('.discount').val(discount.toFixed(2));
+                            calculateTotals();
+                            toastr.info(`Applied previous discount: Rs. ${discount.toFixed(2)}/unit`);
+                        }
+                    }
+                });
+            }
         }
     });
 

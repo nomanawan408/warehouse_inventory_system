@@ -1,44 +1,48 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 :root {
-    --text-color: #56021f;
-    --body-color: #f4cce9;
-    --section-color: #7d1c4a;
-    --navigation-color: #000000;
-    --section: rgb(207, 198, 198);
+    --primary-start: #6a11cb;
+    --primary-end: #2575fc;
+    --primary-gradient: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    --primary-solid: #6a11cb;
+    --primary-hover: #5a0fb8;
+    --body-bg: #f0f2f5;
 }
 body {
-    background-color:#f6f6f6;
+    background-color: var(--body-bg);
     font-family: 'Poppins', sans-serif;
 }
-.navbar {
-    background-color: var(--section-color);
-}
 .btn-primary {
-    background-color: var(--section-color);
-    border-color: var(--section-color);
+    background: var(--primary-gradient);
+    border: none;
     color: white;
 }
 .btn-primary:hover {
-    background-color: #5a1435;
-    border-color: #5a1435;
-}
-.btn-secondary {
-    background-color: var(--navigation-color);
-    border-color: var(--navigation-color);
+    background: linear-gradient(135deg, #5a0fb8 0%, #1d6ae5 100%);
+    border: none;
     color: white;
 }
-.btn-secondary:hover {
-    background-color: #591334;
-    border-color: #591334;
-}
-.navbar-brand {
+.btn-primary:active,
+.btn-primary:focus {
+    background: linear-gradient(135deg, #4e0da0 0%, #1858c7 100%);
+    border: none;
     color: white;
 }
-.navbar-nav .nav-link {
-    color: white;
+.bg-primary {
+    background: var(--primary-gradient) !important;
 }
-.navbar-nav .nav-link:hover {
-    color: #e6e6e6;
+.card-header.bg-primary {
+    background: var(--primary-gradient) !important;
+}
+.table-dark {
+    --bs-table-bg: #2c2c2c;
+    --bs-table-color: #fff;
+}
+thead.table-dark th {
+    background-color: #2c2c2c !important;
+    border-color: #3a3a3a;
+}
+.table-primary thead th {
+    background-color: #2c2c2c !important;
 }
 .container-box {
     background: white;
@@ -46,11 +50,13 @@ body {
     border-radius: 10px;
 }
 .btn-green {
-    background-color: var(--section-color);
+    background: var(--primary-gradient);
     color: white;
+    border: none;
 }
 .btn-green:hover {
-    background-color: #218838;
+    background: linear-gradient(135deg, #5a0fb8 0%, #1d6ae5 100%);
+    color: white;
 }
 .total-box {
     font-size: 30px;
@@ -60,4 +66,40 @@ body {
     padding: 10px;
     border-radius: 5px;
     border: 1px solid #ccc;
+}
+.form-control:focus {
+    border-color: var(--primary-solid);
+    box-shadow: 0 0 0 0.2rem rgba(106, 17, 203, 0.25);
+}
+.btn-success {
+    background-color: #198754;
+    border-color: #198754;
+}
+.btn-success:hover {
+    background-color: #157347;
+    border-color: #157347;
+}
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+.btn-danger:hover {
+    background-color: #bb2d3b;
+    border-color: #bb2d3b;
+}
+.btn-light {
+    background-color: rgba(255,255,255,0.2);
+    border-color: rgba(255,255,255,0.3);
+    color: #fff;
+}
+.btn-light:hover {
+    background-color: rgba(255,255,255,0.35);
+    border-color: rgba(255,255,255,0.4);
+    color: #fff;
+}
+.badge.bg-success {
+    background-color: #198754 !important;
+}
+.badge.bg-danger {
+    background-color: #dc3545 !important;
 }
