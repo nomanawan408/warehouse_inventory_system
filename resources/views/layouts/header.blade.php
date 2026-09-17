@@ -194,6 +194,15 @@
                         </li> --}}
                         <li><hr class="dropdown-divider"></li>
                         <li>
+                            <a class="dropdown-item rounded-3 d-flex align-items-center" href="{{ route('backups.index') }}">
+                                <i class="ti ti-database fs-5 me-3 text-success menu-icon"></i>
+                                <div class="menu-text">
+                                    <div class="fw-medium">System Backups</div>
+                                </div>
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
                             <form action="{{ route('logout') }}" method="POST">
                                 @csrf
                                 <button type="submit" class="dropdown-item rounded-3 d-flex align-items-center w-100 text-start border-0 bg-transparent text-white">

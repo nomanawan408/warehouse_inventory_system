@@ -10,6 +10,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\BackupController;
 use App\Models\Product;
 use Illuminate\Http\Request;
 
@@ -31,6 +32,14 @@ Route::middleware('auth')->group(function () {
     // Profit Reports Routes
     Route::get('/reports/profit', [ProfitReportController::class, 'index'])->name('reports.profit');
     Route::get('/reports/profit/print', [ProfitReportController::class, 'printReport'])->name('reports.profit.print');
+
+    // Backup Routes
+    Route::get('/backups', [BackupController::class, 'index'])->name('backups.index');
+    Route::post('/backups', [BackupController::class, 'store'])->name('backups.store');
+    Route::get('/backups/{filename}/download', [BackupController::class, 'download'])->name('backups.download');
+    Route::delete('/backups/{filename}', [BackupController::class, 'destroy'])->name('backups.destroy');
+    Route::post('/backups/{filename}/restore', [BackupController::class, 'restore'])->name('backups.restore');
+    Route::post('/backups/clean', [BackupController::class, 'clean'])->name('backups.clean');
 
     // Products Routes
     Route::get('/products', [ProductsController::class, 'index'])->name('products.index');
