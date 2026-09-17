@@ -6,7 +6,7 @@ use App\Services\BackupService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class BackupController extends Controller
 {
@@ -61,7 +61,7 @@ class BackupController extends Controller
     /**
      * Download a backup ZIP.
      */
-    public function download(string $filename): StreamedResponse|RedirectResponse
+    public function download(string $filename): SymfonyResponse|RedirectResponse
     {
         try {
             $absolute = $this->backups->backupAbsolutePath($filename);
