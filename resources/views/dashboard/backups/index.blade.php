@@ -57,8 +57,36 @@
                             <i class="fas fa-broom me-1"></i> Clean Old
                         </button>
                     </form>
+                    <button type="button" class="btn btn-info btn-sm text-white" data-bs-toggle="modal" data-bs-target="#uploadModal" title="Upload a backup ZIP from your computer">
+                        <i class="fas fa-upload me-1"></i> Upload Backup
+                    </button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Upload modal -->
+    <div class="modal fade" id="uploadModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <form action="{{ route('backups.upload') }}" method="POST" enctype="multipart/form-data" class="modal-content">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-upload text-info me-2"></i>Upload Backup</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small">Upload a <code>.zip</code> backup created by this app (downloaded earlier or from another server). It will be validated, added to the list below, and can then be downloaded or restored.</p>
+                    <label for="backup_file" class="form-label fw-medium">Backup file (.zip, max {{ config('backup.upload_max_size_mb', 200) }} MB)</label>
+                    <input type="file" name="backup_file" id="backup_file" class="form-control" accept=".zip,application/zip" required>
+                    @error('backup_file')
+                        <div class="text-danger small mt-1">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-info text-white"><i class="fas fa-upload me-1"></i>Upload</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -246,8 +274,26 @@
                     Runs daily at <code>{{ config('backup.schedule_daily_at') }}</code> once the server cron calls <code>php artisan schedule:run</code> every minute. Retention keeps the newest {{ config('backup.keep_count') }} backups for {{ config('backup.keep_days') }} days. Backups live in <code>storage/app/backups</code> (never public).
                 </div>
             </div>
+            <div class="row g-3 small text-muted mt-1">
+                <div class="col-md-12">
+                    <strong class="text-dark">Upload &amp; move backups</strong><br>
+                    Use <strong>Upload Backup</strong> above to bring back a previously downloaded <code>.zip</code> (or one from another server). Uploads are validated and renamed automatically, then appear in the list with full download / restore / delete support.
+                </div>
+            </div>
         </div>
     </div>
 
 </div>
+@endsection
+
+@section('scripts')
+<script>
+    // Re-open the upload dialog if the upload was rejected (validation error).
+    @if($errors->has('backup_file'))
+        document.addEventListener('DOMContentLoaded', function () {
+            var modal = new bootstrap.Modal(document.getElementById('uploadModal'));
+            modal.show();
+        });
+    @endif
+</script>
 @endsection

@@ -44,6 +44,10 @@ return [
     'keep_days' => (int) env('BACKUP_KEEP_DAYS', 30),
     'max_total_size_mb' => (int) env('BACKUP_MAX_TOTAL_SIZE_MB', 1024), // 0 = unlimited
 
+    // Max allowed size for a single uploaded backup file (0 = unlimited,
+    // PHP's upload_max_filesize / post_max_size still apply).
+    'upload_max_size_mb' => (int) env('BACKUP_UPLOAD_MAX_SIZE_MB', 200),
+
     /*
     |--------------------------------------------------------------------------
     | What to include in "files" / "full" backups

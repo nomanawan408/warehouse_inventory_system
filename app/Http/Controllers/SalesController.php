@@ -14,6 +14,7 @@ use App\Models\CustomerTransaction;
 use App\Models\CustomerProductDiscount;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class SalesController extends Controller
 {
@@ -65,10 +66,188 @@ class SalesController extends Controller
         if (request()->has('success')) {
             session()->flash('success', request('success'));
         }
-        
-        $sales = Sale::with('customer', 'saleItems.product')->get();
-        $customers = Customer::all();
-        return view('dashboard.sales.index', compact('sales', 'customers'));
+
+        // The table body is loaded page-by-page via the sales.data JSON
+        // endpoint (server-side DataTables). Never pass the full collection
+        // to the view: it exhausts PHP memory once sales grow (11k+ rows).
+        $filter = request('filter', 'all');
+        if (! in_array($filter, ['all', 'daily', 'weekly', 'monthly'], true)) {
+            $filter = 'all';
+        }
+
+        return view('dashboard.sales.index', compact('filter'));
+    }
+
+    /**
+     * Server-side DataTables JSON feed for the sales list.
+     *
+     * Only ONE page of rows is ever hydrated: filtering, searching,
+     * sorting and counting all happen in SQL.
+     */
+    public function data(Request $request)
+    {
+        $draw = max(0, $request->integer('draw', 0));
+        $start = max(0, $request->integer('start', 0));
+        $length = min(100, max(1, $request->integer('length', 25)));
+        $search = trim((string) $request->input('search.value', ''));
+        if (mb_strlen($search) > 255) {
+            $search = mb_substr($search, 0, 255);
+        }
+        $filter = $request->input('filter', 'all');
+        $orderColumn = $request->integer('order.0.column', 7);
+        $orderDir = strtolower((string) $request->input('order.0.dir', 'desc')) === 'asc' ? 'asc' : 'desc';
+
+        $recordsTotal = Sale::count();
+
+        $query = $this->filteredSalesQuery($filter, $search);
+        $recordsFiltered = (clone $query)->count();
+
+        $this->applySalesOrdering($query, $orderColumn, $orderDir);
+
+        $sales = $query->skip($start)->take($length)->get();
+
+        $data = $sales->map(function (Sale $sale) {
+            return [
+                'id' => $sale->id,
+                'invoice' => '# '.str_pad($sale->id, 3, '0', STR_PAD_LEFT),
+                'customer_name' => $sale->customer ? $sale->customer->name : 'Deleted Customer',
+                'total_amount' => $sale->total_amount,
+                'discount' => $sale->discount,
+                'net_total' => $sale->net_total,
+                'amount_paid' => $sale->amount_paid,
+                'pending_amount' => $sale->pending_amount,
+                'updated_at' => $sale->updated_at ? $sale->updated_at->format('Y-m-d H:i') : '',
+            ];
+        });
+
+        return response()->json([
+            'draw' => $draw,
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data' => $data,
+        ]);
+    }
+
+    /**
+     * Export the (filtered) sales list. CSV streams row-by-row so exports
+     * of any size stay within memory limits. PDF uses lightweight
+     * non-model rows for the same reason.
+     */
+    public function export(Request $request, string $format)
+    {
+        if (! in_array($format, ['csv', 'pdf'], true)) {
+            abort(404);
+        }
+
+        $filter = $request->input('filter', 'all');
+        $search = trim((string) $request->input('search', ''));
+        if (mb_strlen($search) > 255) {
+            $search = mb_substr($search, 0, 255);
+        }
+
+        $filename = "sales-{$filter}-".now()->format('Y-m-d-H-i-s');
+
+        if ($format === 'csv') {
+            $query = $this->filteredSalesQuery($filter, $search)
+                ->select('sales.id', 'sales.total_amount', 'sales.discount', 'sales.net_total', 'sales.amount_paid', 'sales.pending_amount', 'sales.updated_at')
+                ->with('customer:id,name')
+                ->latest('sales.updated_at');
+
+            return response()->streamDownload(function () use ($query) {
+                $handle = fopen('php://output', 'w');
+                fputcsv($handle, ['Invoice #', 'Customer', 'Total Amount', 'Discount', 'Net Total', 'Amount Paid', 'Pending Amount', 'Last Update'], ',', '"', '\\');
+                $query->chunk(1000, function ($sales) use ($handle) {
+                    foreach ($sales as $sale) {
+                        fputcsv($handle, [
+                            '# '.str_pad($sale->id, 3, '0', STR_PAD_LEFT),
+                            $sale->customer ? $sale->customer->name : 'Deleted Customer',
+                            $sale->total_amount,
+                            $sale->discount,
+                            $sale->net_total,
+                            $sale->amount_paid,
+                            $sale->pending_amount,
+                            $sale->updated_at ? $sale->updated_at->format('Y-m-d H:i') : '',
+                        ]);
+                    }
+                });
+                fclose($handle);
+            }, "{$filename}.csv", ['Content-Type' => 'text/csv']);
+        }
+
+        // PDF: plain stdClass rows (no Eloquent hydration) to keep memory flat.
+        $rows = $this->filteredSalesQuery($filter, $search)
+            ->leftJoin('customers', 'customers.id', '=', 'sales.customer_id')
+            ->select('sales.id', 'sales.total_amount', 'sales.discount', 'sales.net_total', 'sales.amount_paid', 'sales.pending_amount', 'sales.updated_at', 'customers.name as customer_name')
+            ->orderBy('sales.updated_at', 'desc')
+            ->get();
+
+        $pdf = Pdf::loadView('dashboard.sales.export_pdf', [
+            'rows' => $rows,
+            'filter' => $filter,
+            'generatedAt' => now()->format('d M Y, h:i A'),
+        ])->setPaper('a4', 'landscape');
+
+        return $pdf->download("{$filename}.pdf");
+    }
+
+    /**
+     * Shared filtered + searched sales query (no ordering, no pagination).
+     * Counts, pages and exports all build on this so they can never drift.
+     */
+    protected function filteredSalesQuery($filter, ?string $search)
+    {
+        $query = Sale::query()->with('customer:id,name');
+
+        if (in_array($filter, ['daily', 'weekly', 'monthly'], true)) {
+            $now = Carbon::now();
+            match ($filter) {
+                'daily' => $query->whereDate('sales.updated_at', $now->toDateString()),
+                'weekly' => $query->whereBetween('sales.updated_at', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()]),
+                'monthly' => $query->whereBetween('sales.updated_at', [$now->copy()->startOfMonth(), $now->copy()->endOfMonth()]),
+                default => null,
+            };
+        }
+
+        if ($search !== null && $search !== '') {
+            $query->where(function ($q) use ($search) {
+                if (is_numeric($search)) {
+                    $q->orWhere('sales.id', (int) $search);
+                }
+                $q->orWhereHas('customer', function ($cq) use ($search) {
+                    $cq->where('name', 'like', "%{$search}%");
+                });
+            });
+        }
+
+        return $query;
+    }
+
+    /**
+     * Map DataTables column indexes to SQL ordering. Customer name needs
+     * a join; the join is applied only when that column is sorted so
+     * counts stay cheap and correct.
+     */
+    protected function applySalesOrdering($query, int $column, string $dir): void
+    {
+        $map = [
+            0 => 'sales.id',
+            2 => 'sales.total_amount',
+            3 => 'sales.discount',
+            4 => 'sales.net_total',
+            5 => 'sales.amount_paid',
+            6 => 'sales.pending_amount',
+            7 => 'sales.updated_at',
+        ];
+
+        if ($column === 1) {
+            $query->leftJoin('customers as order_customers', 'order_customers.id', '=', 'sales.customer_id')
+                ->orderBy('order_customers.name', $dir)
+                ->select('sales.*');
+
+            return;
+        }
+
+        $query->orderBy($map[$column] ?? 'sales.updated_at', $dir);
     }
 
     public function create(){

@@ -60,7 +60,7 @@ class BackupService
 
         $prefix = preg_quote((string) config('backup.filename_prefix', 'backup'), '/');
 
-        if (! preg_match('/^'.$prefix.'-(database|files|full)-[\d\-]+\.zip$/', $base)) {
+        if (! preg_match('/^'.$prefix.'-(database|files|full)-[\d\-]+(-uploaded(-\d+)?)?\.zip$/', $base)) {
             throw new RuntimeException('Invalid backup filename.');
         }
 
@@ -150,6 +150,98 @@ class BackupService
     }
 
     /**
+     * Store an uploaded backup ZIP and return its stored filename.
+     *
+     * The uploaded file must be a genuine ZIP containing at least a
+     * database dump (database/db.sql) or application files (files/).
+     * Uploads are renamed to the standard backup naming scheme based on
+     * their detected contents, so they work with download/restore/cleanup.
+     *
+     * @param \Illuminate\Http\UploadedFile|\Symfony\Component\HttpFoundation\File\UploadedFile $file
+     */
+    public function storeUpload($file): string
+    {
+        if (! class_exists(ZipArchive::class)) {
+            throw new RuntimeException('PHP zip extension is required for backups.');
+        }
+
+        if (! $file->isValid()) {
+            throw new RuntimeException('Uploaded file is invalid or incomplete.');
+        }
+
+        $maxMb = max(0, (int) config('backup.upload_max_size_mb', 200));
+        if ($maxMb > 0 && $file->getSize() > $maxMb * 1024 * 1024) {
+            throw new RuntimeException("Uploaded file exceeds the {$maxMb} MB limit.");
+        }
+
+        $extension = strtolower((string) $file->getClientOriginalExtension());
+        if ($extension !== 'zip' && strtolower(substr((string) $file->getClientOriginalName(), -4)) !== '.zip') {
+            throw new RuntimeException('Only .zip backup files can be uploaded.');
+        }
+
+        $tmpPath = $file->getRealPath();
+        if ($tmpPath === false || ! is_file($tmpPath)) {
+            throw new RuntimeException('Could not read uploaded file.');
+        }
+
+        $zip = new ZipArchive();
+        if ($zip->open($tmpPath) !== true) {
+            throw new RuntimeException('Uploaded file is not a valid ZIP archive.');
+        }
+
+        try {
+            $hasDatabase = $zip->locateName('database/db.sql') !== false;
+            $hasFiles = false;
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $name = $zip->getNameIndex($i);
+                if (is_string($name) && str_starts_with($name, 'files/') && ! str_ends_with($name, '/') && $name !== 'files/.gitkeep') {
+                    $hasFiles = true;
+                    break;
+                }
+            }
+        } finally {
+            $zip->close();
+        }
+
+        if (! $hasDatabase && ! $hasFiles) {
+            throw new RuntimeException('This ZIP is not a valid backup (no database dump or application files found).');
+        }
+
+        $type = $hasDatabase && $hasFiles ? self::TYPE_FULL : ($hasDatabase ? self::TYPE_DATABASE : self::TYPE_FILES);
+
+        $this->ensureBackupDirectoryExists();
+
+        $date = Carbon::now()->format((string) config('backup.date_format', 'Y-m-d-H-i-s'));
+        $prefix = (string) config('backup.filename_prefix', 'backup');
+        $filename = "{$prefix}-{$type}-{$date}-uploaded.zip";
+        $relativePath = $this->fullPath($filename);
+
+        $counter = 1;
+        while ($this->disk()->exists($relativePath)) {
+            $filename = "{$prefix}-{$type}-{$date}-uploaded-{$counter}.zip";
+            $relativePath = $this->fullPath($filename);
+            $counter++;
+        }
+
+        // Stream the upload into place (never trust the client filename).
+        $stream = fopen($tmpPath, 'r');
+        if ($stream === false) {
+            throw new RuntimeException('Could not read uploaded file.');
+        }
+        try {
+            if (! $this->disk()->put($relativePath, $stream)) {
+                throw new RuntimeException('Could not store uploaded backup.');
+            }
+        } finally {
+            if (is_resource($stream)) {
+                fclose($stream);
+            }
+        }
+
+        return $filename;
+    }
+
+    /**
      * Newest-first list of backups with metadata.
      *
      * @return array<int, array{name:string,size:int,size_human:string,modified:int,modified_human:string,type:string,has_database:bool,has_files:bool}>
@@ -164,7 +256,7 @@ class BackupService
         $backups = [];
         foreach ($files as $file) {
             $name = basename($file);
-            if (! preg_match('/^'.preg_quote($prefix, '/').'-(database|files|full)-[\d\-]+\.zip$/', $name, $m)) {
+            if (! preg_match('/^'.preg_quote($prefix, '/').'-(database|files|full)-[\d\-]+(-uploaded(-\d+)?)?\.zip$/', $name, $m)) {
                 continue;
             }
 

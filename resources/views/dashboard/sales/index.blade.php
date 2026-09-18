@@ -13,10 +13,10 @@
                     <div class="mb-3">
                         <label for="filter">Filter by:</label>
                         <select id="filter" class="form-control">
-                            <option value="">All</option>
-                            <option value="daily">Daily</option>
-                            <option value="weekly">Weekly</option>
-                            <option value="monthly">Monthly</option>
+                            <option value="all" {{ $filter === 'all' ? 'selected' : '' }}>All</option>
+                            <option value="daily" {{ $filter === 'daily' ? 'selected' : '' }}>Daily</option>
+                            <option value="weekly" {{ $filter === 'weekly' ? 'selected' : '' }}>Weekly</option>
+                            <option value="monthly" {{ $filter === 'monthly' ? 'selected' : '' }}>Monthly</option>
                         </select>
                     </div>
                     
@@ -35,43 +35,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($sales as $sale)
-                                <tr>
-                                    <td># {{ str_pad($sale->id, 3, '0', STR_PAD_LEFT) }}</td>
-                                    <td>{{ $sale->customer ? $sale->customer->name : 'Deleted Customer' }}</td>
-                                    <td>{{ $sale->total_amount }}</td>
-                                    <td>{{ $sale->discount }}</td>
-                                    <td>{{ $sale->net_total }}</td>
-                                    <td>{{ $sale->amount_paid }}</td>
-                                    <td>
-                                        @if ($sale->pending_amount == 0)
-                                            <span class="badge bg-success">Paid</span>
-                                        @else
-                                            <span class="badge bg-danger">{{ $sale->pending_amount }}</span>
-                                        @endif  
-                                    </td>
-                                    <td>{{ $sale->updated_at }}</td>
-                                    <td>
-                                        <div class="d-flex gap-2 justify-content-start align-items-center">
-                                            <button class="btn btn-sm shadow-sm rounded-pill view-invoice" 
-                                                    style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; padding: 0; background: linear-gradient(135deg, #198754, #20c997); border: none; color: #fff;" 
-                                                    data-sale-id="{{ $sale->id }}" 
-                                                    data-bs-toggle="tooltip" 
-                                                    data-bs-placement="top" 
-                                                    title="View Invoice">
-                                                <i class="ti ti-file-invoice" style="font-size: 1.2rem;"></i>
-                                            </button>
-                                            <a href="{{ route('sales.edit', $sale->id) }}" class="btn btn-sm shadow-sm rounded-pill" 
-                                                    style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; padding: 0; background: linear-gradient(135deg, #6a11cb, #2575fc); border: none; color: #fff;" 
-                                                    data-bs-toggle="tooltip" 
-                                                    data-bs-placement="top" 
-                                                    title="Edit Invoice">
-                                                <i class="ti ti-edit" style="font-size: 1.2rem;"></i>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
+                            {{-- Rows are loaded page-by-page from the server (see script below). --}}
                         </tbody>
                     </table>
                 </div>
@@ -94,47 +58,95 @@
 
     <script>
         $(document).ready(function() {
-            // Initialize DataTable
+            var dataUrl = @json(route('sales.data'));
+            var exportBaseUrl = @json(url('/sales/export'));
+
+            function exportUrl(format) {
+                var params = new URLSearchParams({
+                    filter: $('#filter').val(),
+                    search: table.search()
+                });
+                return exportBaseUrl + '/' + format + '?' + params.toString();
+            }
+
+            // Server-side table: only the visible page is ever transferred.
             var table = $('#saleTable').DataTable({
                 dom: 'Bfrtip',
+                processing: true,
+                serverSide: true,
                 order: [[7, 'desc']],
-                buttons: [
-                    'excel', 'csv', 'pdf', 'print', 
-                    {
-                        extend: 'pdfHtml5',
-                        orientation: 'landscape'
+                pageLength: 25,
+                ajax: {
+                    url: dataUrl,
+                    data: function(d) {
+                        d.filter = $('#filter').val();
                     }
-                ]
+                },
+                columns: [
+                    { data: 'invoice', name: 'id' },
+                    { data: 'customer_name', name: 'customer' },
+                    { data: 'total_amount', name: 'total' },
+                    { data: 'discount', name: 'discount' },
+                    { data: 'net_total', name: 'net_total' },
+                    { data: 'amount_paid', name: 'paid' },
+                    {
+                        data: 'pending_amount',
+                        name: 'pending',
+                        render: function(data) {
+                            if (parseFloat(data) == 0) {
+                                return '<span class="badge bg-success">Paid</span>';
+                            }
+                            return '<span class="badge bg-danger">' + $('<div>').text(data).html() + '</span>';
+                        }
+                    },
+                    { data: 'updated_at', name: 'updated' },
+                    {
+                        data: 'id',
+                        name: 'action',
+                        orderable: false,
+                        searchable: false,
+                        render: function(data) {
+                            var id = parseInt(data, 10);
+                            return '<div class="d-flex gap-2 justify-content-start align-items-center">' +
+                                '<button class="btn btn-sm shadow-sm rounded-pill view-invoice"' +
+                                ' style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; padding: 0; background: linear-gradient(135deg, #198754, #20c997); border: none; color: #fff;"' +
+                                ' data-sale-id="' + id + '"' +
+                                ' data-bs-toggle="tooltip" data-bs-placement="top" title="View Invoice">' +
+                                '<i class="ti ti-file-invoice" style="font-size: 1.2rem;"></i></button>' +
+                                '<a href="/sales/' + id + '/edit" class="btn btn-sm shadow-sm rounded-pill"' +
+                                ' style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; padding: 0; background: linear-gradient(135deg, #6a11cb, #2575fc); border: none; color: #fff;"' +
+                                ' data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Invoice">' +
+                                '<i class="ti ti-edit" style="font-size: 1.2rem;"></i></a></div>';
+                        }
+                    }
+                ],
+                buttons: [
+                    {
+                        text: 'CSV (all filtered)',
+                        action: function() { window.location = exportUrl('csv'); }
+                    },
+                    {
+                        text: 'PDF (all filtered)',
+                        action: function() { window.location = exportUrl('pdf'); }
+                    },
+                    'print'
+                ],
+                drawCallback: function() {
+                    // Tooltips only exist for the freshly drawn page.
+                    $('[data-bs-toggle="tooltip"]').tooltip('dispose').tooltip();
+                }
             });
 
-            // View invoice handler
+            // View invoice handler (delegated: rows are replaced on every draw)
             $('#saleTable').on('click', '.view-invoice', function() {
                 var saleId = $(this).data('sale-id');
                 window.open(`/sales/${saleId}/print`, '_blank');
             });
 
-            // Filter functionality
+            // Date-range filter is applied server-side, then the page reloads.
             $('#filter').on('change', function() {
-                var filterValue = $(this).val();
-                var today = moment();
-
-                if (filterValue === 'daily') {
-                    table.column(7).search(today.format('YYYY-MM-DD')).draw();
-                } else if (filterValue === 'weekly') {
-                    var startOfWeek = today.startOf('week').format('YYYY-MM-DD');
-                    var endOfWeek = today.endOf('week').format('YYYY-MM-DD');
-                    table.column(7).search(startOfWeek + '|' + endOfWeek, true, false).draw();
-                } else if (filterValue === 'monthly') {
-                    var startOfMonth = today.startOf('month').format('YYYY-MM-DD');
-                    var endOfMonth = today.endOf('month').format('YYYY-MM-DD');
-                    table.column(7).search(startOfMonth + '|' + endOfMonth, true, false).draw();
-                } else {
-                    table.column(7).search('').draw();
-                }
+                table.ajax.reload();
             });
-
-            // Initialize tooltips
-            $('[data-bs-toggle="tooltip"]').tooltip();
         });
     </script>
 @endsection

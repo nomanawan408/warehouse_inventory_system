@@ -74,6 +74,30 @@ class BackupController extends Controller
     }
 
     /**
+     * Upload a backup ZIP (e.g. downloaded earlier or from another server).
+     */
+    public function upload(Request $request): RedirectResponse
+    {
+        $maxKb = max(1, (int) config('backup.upload_max_size_mb', 200)) * 1024;
+
+        $validated = $request->validate([
+            'backup_file' => "required|file|mimetypes:application/zip,application/x-zip-compressed,application/octet-stream|max:{$maxKb}",
+        ]);
+
+        try {
+            $filename = $this->backups->storeUpload($validated['backup_file']);
+
+            return redirect()->route('backups.index')
+                ->with('success', "Backup uploaded successfully: {$filename}. You can now download or restore it.");
+        } catch (\Throwable $e) {
+            report($e);
+
+            return redirect()->route('backups.index')
+                ->with('error', 'Upload failed: '.$e->getMessage());
+        }
+    }
+
+    /**
      * Delete a backup ZIP.
      */
     public function destroy(string $filename): RedirectResponse

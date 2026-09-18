@@ -36,10 +36,11 @@ Route::middleware('auth')->group(function () {
     // Backup Routes
     Route::get('/backups', [BackupController::class, 'index'])->name('backups.index');
     Route::post('/backups', [BackupController::class, 'store'])->name('backups.store');
+    Route::post('/backups/upload', [BackupController::class, 'upload'])->name('backups.upload');
+    Route::post('/backups/clean', [BackupController::class, 'clean'])->name('backups.clean');
     Route::get('/backups/{filename}/download', [BackupController::class, 'download'])->name('backups.download');
     Route::delete('/backups/{filename}', [BackupController::class, 'destroy'])->name('backups.destroy');
     Route::post('/backups/{filename}/restore', [BackupController::class, 'restore'])->name('backups.restore');
-    Route::post('/backups/clean', [BackupController::class, 'clean'])->name('backups.clean');
 
     // Products Routes
     Route::get('/products', [ProductsController::class, 'index'])->name('products.index');
@@ -55,6 +56,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/sales/create', [SalesController::class, 'create'])->name('sales.create');
     Route::post('/sales', [SalesController::class, 'store'])->name('sales.store');
     Route::get('/sales/last-discount', [SalesController::class, 'getLastDiscount'])->name('sales.lastDiscount');
+    // Server-side DataTables feed + streaming exports. Must be registered
+    // BEFORE /sales/{id} so "data" and "export/..." aren't captured as {id}.
+    Route::get('/sales/data', [SalesController::class, 'data'])->name('sales.data');
+    Route::get('/sales/export/{format}', [SalesController::class, 'export'])->name('sales.export');
     Route::get('/sales/{id}', [SalesController::class, 'show'])->name('sales.show');
     Route::get('/sales/{id}/print', [SalesController::class, 'print'])->name('sales.print');
     Route::get('/sales/{id}/edit', [SalesController::class, 'edit'])->name('sales.edit');
