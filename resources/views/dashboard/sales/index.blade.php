@@ -126,7 +126,7 @@
                         action: function() { window.location = exportUrl('csv'); }
                     },
                     {
-                        text: 'PDF (all filtered)',
+                        text: 'PDF (recent 150)',
                         action: function() { window.location = exportUrl('pdf'); }
                     },
                     'print'

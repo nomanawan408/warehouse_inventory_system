@@ -17,6 +17,9 @@
 <body>
     <h2>Sales Report ({{ ucfirst($filter) }})</h2>
     <p class="meta">Generated: {{ $generatedAt }} &middot; Rows: {{ $rows->count() }}</p>
+    @if(!empty($capped) && $capped)
+    <p class="meta"><strong>Note:</strong> showing the most recent {{ number_format($limit) }} of {{ number_format($totalCount) }} matching sales. Use the CSV export for the complete dataset.</p>
+    @endif
     <table>
         <thead>
             <tr>

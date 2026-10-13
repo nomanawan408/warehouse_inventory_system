@@ -3,113 +3,112 @@
 <head>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link href="{{ asset('css/dashboard.css') }}" rel="stylesheet">
-    
 </head>
 @section('content')
-    <div class="container-fluid my-4">
-        <div class="row">
-            <div class="col-md-9">
-                <div class="container-box ">
-                    <div id="processing" class="my-3">
-                        <!-- API results will be rendered here -->
-                    </div>
-                    <div id="response" class="my-3"></div>
-                    <div class="product-search-container">
-                        <i class="search-icon fas fa-search"></i>
-                        <input type="text" id="search" placeholder="Search for products..."
-                            class="search-bar form-control">
-                        <div style="width: 100%;">
+    <div class="container-fluid" style="padding: 20px 28px;">
+        <div class="pos-wrapper">
+            <!-- ═══ LEFT: Products & Cart ═══ -->
+            <div class="pos-main">
+                <!-- Processing / Response feedback -->
+                <div id="processing"></div>
+                <div id="response"></div>
+
+                <!-- Search Card -->
+                <div class="pos-card" style="margin-bottom: 20px;">
+                    <div class="pos-card-body" style="padding: 16px 20px;">
+                        <div class="search-wrapper">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" id="search" placeholder="Search products by name or company..." autofocus>
                             <ul id="search-results"></ul>
                         </div>
                     </div>
-                    <div class="cart-container">
-                        <table class="cart-table table table-bordered table-hover table-striped mt-3" style="width: 100%">
-                            <thead class="table-light">
-                                <tr>
-                                    <th style="width: 30%">PRODUCT NAME</th>
-                                    <th style="width: 16%">COMPANY</th>
-                                    <th style="width: 10%" class="text-center">QTY</th>
-                                    <th style="width: 12%" class="text-center">PRICE</th>
-                                    <th style="width: 12%" class="text-center">DISCOUNT</th>
-                                    <th style="width: 12%" class="text-center">TOTAL</th>
-                                    <th style="width: 10%" class="text-center">ACTION</th>
-                                </tr>
-                            </thead>
-                            <tbody style="overflow-y: auto; max-height: 400px;">
+                </div>
 
-                            </tbody>
-                        </table>
-                    </div>
+                <!-- Cart Table -->
+                <div class="cart-wrapper">
+                    <table class="table" style="width: 100%; margin: 0;">
+                        <thead>
+                            <tr>
+                                <th style="width: 28%;">Product</th>
+                                <th style="width: 14%;">Company</th>
+                                <th style="width: 10%;" class="text-center">Qty</th>
+                                <th style="width: 13%;" class="text-end">Price</th>
+                                <th style="width: 15%;" class="text-center">Discount/unit</th>
+                                <th style="width: 13%;" class="text-end">Total</th>
+                                <th style="width: 7%;" class="text-center"></th>
+                            </tr>
+                        </thead>
+                        <tbody style="max-height: 420px; overflow-y: auto;">
+                        </tbody>
+                    </table>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="container-box">
-                    <h5><strong>INVENTORY</strong></h5>
 
-                    <!-- <button class="btn btn-primary w-100 mb-2">VIEW REPORTS</button> -->
-                    
-                    <div class="customer-select-container mb-3">
-                        <input type="text" class="form-control customer-search-input" id="customer-search" placeholder="Search customer by name or phone...">
-                        <input type="hidden" id="selected-customer-id">
-                        <div class="customer-dropdown" id="customer-dropdown">
-                            <!-- Customer search results will be populated here -->
-                        </div>
+            <!-- ═══ RIGHT: Sidebar ═══ -->
+            <div class="pos-sidebar">
+                <div class="pos-card">
+                    <div class="pos-card-header">
+                        <div class="icon"><i class="ti ti-shopping-cart"></i></div>
+                        <h6>Order Summary</h6>
                     </div>
-                    
-                    <div class="summary-box">
-                        <div class="summary-item">
-                            <span class="summary-label">Subtotal:</span>
-                            <span id="sub-total" class="summary-value">
-                                @if (isset($subTotal))
-                                    {{ $subTotal }}
-                                @else
-                                    Rs. 0.00
-                                @endif
-                            </span>
-                        </div>
-                        <div class="summary-item">
-                            <span class="summary-label">Discount (%):</span>
-                            <div class="input-group mt-2">
-                                <input type="number" value="0.00" class="form-control" id="discount-percent" placeholder="Enter discount %" min="0" max="100" step="0.01">
-                                <span class="input-group-text">%</span>
+                    <div class="pos-card-body">
+                        <!-- Customer -->
+                        <div class="sidebar-section">
+                            <span class="sidebar-label">Customer</span>
+                            <div class="customer-select-container">
+                                <input type="text" class="customer-search-input" id="customer-search" placeholder="Search by name or phone...">
+                                <input type="hidden" id="selected-customer-id">
+                                <div class="customer-dropdown" id="customer-dropdown"></div>
                             </div>
                         </div>
-                        <div class="summary-item">
-                            <span class="summary-label">Discount:</span>
-                            <span id="discount" class="summary-value">
-                                @if (isset($discount))
-                                    {{ $discount }}
-                                @else
-                                    Rs. 0.00
-                                @endif
-                            </span>
-                        </div>
-                        <div class="summary-item">
-                            <span class="summary-label">Net Total:</span>
-                            <span id="net-total" class="summary-value">
-                                @if (isset($netTotal))
-                                    <b>{{ $netTotal }}</b>
-                                @else
-                                    <b>Rs. 0.00</b>
-                                @endif
-                            </span>
-                        </div>
-                        <div class="summary-item">
-                            <span class="summary-label">Amount Paid:</span>
-                            <div class="input-group mt-2">
-                                <span class="input-group-text">Rs.</span>
-                                <input type="number" value="0.00" class="form-control" id="paid-amount" placeholder="Enter amount">
+
+                        <!-- Summary -->
+                        <div class="sidebar-section">
+                            <div class="summary-panel">
+                                <div class="summary-row">
+                                    <span class="label">Subtotal</span>
+                                    <span id="sub-total" class="value">Rs. 0.00</span>
+                                </div>
+                                <div class="summary-row">
+                                    <span class="label">Discount %</span>
+                                    <div style="width: 110px;">
+                                        <div class="summary-input-group">
+                                            <input type="number" value="0.00" class="summary-input" id="discount-percent" min="0" max="100" step="0.01">
+                                            <span class="suffix">%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="summary-row">
+                                    <span class="label">Discount</span>
+                                    <span id="discount" class="value">Rs. 0.00</span>
+                                </div>
+                                <div class="summary-row total">
+                                    <span class="label">Net Total</span>
+                                    <span id="net-total" class="value">Rs. 0.00</span>
+                                </div>
+                                <div class="summary-row">
+                                    <span class="label">Amount Paid</span>
+                                    <div style="width: 140px;">
+                                        <div class="summary-input-group">
+                                            <input type="number" value="0.00" class="summary-input" id="paid-amount" min="0" step="0.01">
+                                            <span class="suffix">Rs.</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="d-grid gap-2 mt-4">
-                        
-                        <button class="btn btn-lg btn-action shadow-lg" id="checkout-btn" style="background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); color: #fff; border: none;">
-                            <i class="fas fa-check-circle me-2"></i>Complete Sale
-                        </button>
-                        <button class="btn btn-secondary btn-action" id="reset-cart" style="background: #495057; border-color: #495057;">
-                            <i class="fas fa-trash me-2"></i>Reset Cart
-                        </button>
+
+                        <!-- Actions -->
+                        <div class="sidebar-section" style="margin-top: 20px;">
+                            <button class="btn-checkout" id="checkout-btn">
+                                <i class="fas fa-check-circle"></i>
+                                Complete Sale
+                            </button>
+                            <button class="btn-reset" id="reset-cart" style="margin-top: 10px;">
+                                <i class="fas fa-trash-can"></i>
+                                Reset Cart
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -126,16 +125,13 @@
             
             // Show custom toast message
             function showToast(message, type = 'info') {
-                // Remove any existing toasts
                 $('.custom-toast').remove();
                 
-                // Create icon based on type
                 let icon = '';
-                if (type === 'success') icon = '<i class="fas fa-check-circle text-success"></i>';
-                else if (type === 'error') icon = '<i class="fas fa-exclamation-circle text-danger"></i>';
-                else icon = '<i class="fas fa-info-circle text-info"></i>';
+                if (type === 'success') icon = '<i class="fas fa-check-circle" style="color: #10b981;"></i>';
+                else if (type === 'error') icon = '<i class="fas fa-exclamation-circle" style="color: #ef4444;"></i>';
+                else icon = '<i class="fas fa-info-circle" style="color: #3b82f6;"></i>';
                 
-                // Create toast element
                 const toast = $(`
                     <div class="custom-toast toast-${type}">
                         ${icon}
@@ -144,37 +140,30 @@
                     </div>
                 `);
                 
-                // Add to body and remove after delay
                 $('body').append(toast);
                 
-                // Add click handler to close button
                 toast.find('.btn-close').on('click', function() {
                     toast.css('animation', 'slideOutLeft 0.3s forwards');
                     setTimeout(() => toast.remove(), 300);
                 });
                 
-                // Auto-dismiss after delay
                 setTimeout(() => {
                     toast.css('animation', 'slideOutLeft 0.3s forwards');
                     setTimeout(() => toast.remove(), 300);
                 }, 3000);
             }
             
-            // Load cart from localStorage on page load
             loadCartFromSession();
 
-            // Live search event with preloaded products
-            let allProducts = []; // Will store all products
+            let allProducts = [];
             
-            // Fetch all products on page load
             function fetchAllProducts() {
                 $.ajax({
                     url: "/products/all",
                     type: "GET",
-                    cache: false, // Disable caching to always get fresh data
+                    cache: false,
                     success: function(data) {
                         allProducts = data;
-                        console.log('Preloaded products:', allProducts.length);
                     },
                     error: function(error) {
                         console.error("Error loading products:", error);
@@ -183,17 +172,14 @@
                 });
             }
             
-            // Load all products when page loads
             fetchAllProducts();
             
-            // Close search results when clicking outside
             $(document).on('click', function(e) {
-                if (!$(e.target).closest('.product-search-container').length) {
+                if (!$(e.target).closest('.product-search-container, .search-wrapper').length) {
                     $('#search-results').hide();
                 }
             });
             
-            // Show all products when search gets focus
             $('#search').on('focus', function() {
                 if (allProducts.length > 0) {
                     if ($(this).val().length === 0) {
@@ -204,109 +190,91 @@
                     }
                     $('#search-results').show();
                 } else {
-                    // If products haven't loaded yet, show loading message
                     $('#search-results').html('<li class="p-3 text-center text-muted small">Loading products...</li>');
                     $('#search-results').show();
-                    // Attempt to load products
                     fetchAllProducts();
                 }
             });
             
-            // Handle search input
             $('#search').on('input', function() {
                 const query = $(this).val().toLowerCase();
                 
                 if (query.length === 0 && allProducts.length > 0) {
-                    // Show all products when search is empty
                     displayProducts(allProducts);
                 } else if (query.length > 0) {
-                    // Filter products based on query
                     filterAndDisplayProducts(query);
                 }
                 
                 $('#search-results').show();
             });
             
-            // Filter products based on search query
             function filterAndDisplayProducts(query) {
                 if (allProducts.length === 0) {
-                    // Fall back to API if preloaded products aren't available
                     searchProductsAPI(query);
                     return;
                 }
                 
-                // Filter locally for faster response
                 const filteredProducts = allProducts.filter(product => 
                     product.name.toLowerCase().includes(query) || 
-                    (product.company && product.company.name && 
-                     product.company.name.toLowerCase().includes(query))
+                    (product.company_name && product.company_name.toLowerCase().includes(query))
                 );
                 
                 displayProducts(filteredProducts);
             }
             
-            // Display products in search results
             function displayProducts(products) {
                 let results = "";
                 
                 if (products.length === 0) {
                     results = `<li class="p-3 text-center text-muted">No products found</li>`;
                 } else {
-                    // Sort products by name for easier scanning
                     products.sort((a, b) => a.name.localeCompare(b.name));
-                    
-                    // Limit to first 20 products to avoid overwhelming the UI
                     const displayProducts = products.slice(0, 20);
                     
                     displayProducts.forEach(product => {
                         const inStock = product.quantity > 0;
-                        const badgeClass = inStock ? 'bg-success' : 'bg-danger';
+                        const stockClass = inStock ? 'in-stock' : 'out-stock';
                         const stockText = inStock ? `${product.quantity} in stock` : 'Out of stock';
-                        const disabledClass = inStock ? '' : 'opacity-50 pe-none'; // pe-none disables pointer events
-                        const companyName = product.company_name || (product.company ? product.company.name : 'No company');
+                        const disabledClass = inStock ? '' : 'opacity-50 pe-none';
+                        const companyName = product.company_name || 'No company';
                         
                         results += `
-                        <li class="list-group-item d-flex justify-content-between align-items-center ${disabledClass}" 
+                        <li class="${disabledClass}" 
                             data-id="${product.id}" 
                             data-name="${product.name}" 
                             data-sale_price="${product.sale_price}"
                             data-quantity="${product.quantity}"
                             data-company_name="${companyName}">
-                            
-                            <div>
+                            <div style="flex: 1; min-width: 0;">
                                 <div class="product-name">${product.name}</div>
-                                <small class="text-muted">${companyName}</small>
+                                <small style="color: var(--text-muted); font-size: 0.78rem;">${companyName}</small>
                             </div>
-                            <div class="d-flex align-items-center">
-                                <span class="badge ${badgeClass} rounded-pill me-3">${stockText}</span>
+                            <div style="display: flex; align-items: center; gap: 12px; flex-shrink: 0;">
+                                <span class="stock-badge ${stockClass}">${stockText}</span>
                                 <span class="product-price">Rs. ${parseFloat(product.sale_price).toFixed(2)}</span>
                             </div>
                         </li>`;
                     });
                     
                     if (products.length > 20) {
-                        results += `<li class="p-2 text-center text-muted small">Showing 20 of ${products.length} products. Type to refine search.</li>`;
+                        results += `<li class="p-2 text-center text-muted small" style="border: none; cursor: default;">Showing 20 of ${products.length} products. Type to refine.</li>`;
                     }
                 }
                 
                 $('#search-results').html(results);
             }
             
-            // Fall back to API search if needed
             function searchProductsAPI(query) {
                 $.ajax({
                     url: "/search",
                     type: "GET",
-                    data: {
-                        'query': query
-                    },
+                    data: { query: query },
                     success: function(data) {
                         displayProducts(data);
                     },
                     error: function(error) {
                         console.error("Error searching products:", error);
                         showToast("Error searching products. Please try again.", "error");
-                        $('#search-results').html('<li class="p-3 text-center text-danger">Error searching products</li>');
                     }
                 });
             }
@@ -320,65 +288,54 @@
                 loadCartFromSession();
             });
 
-            // Click event to add product to cart
+            // Add product to cart
             $(document).on('click', '#search-results li', function() {
+                if ($(this).hasClass('pe-none')) return;
                 let productId = $(this).data('id');
                 let productName = $(this).data('name');
                 let productPrice = $(this).data('sale_price');
                 let productQuantity = parseInt($(this).data('quantity') || 0);
                 let companyName = $(this).data('company_name');
                 
-                // Prevent adding out-of-stock items
                 if (productQuantity <= 0) {
                     showToast(`Cannot add ${productName} - Out of stock`, "error");
                     return;
                 }
 
                 addToCart(productId, productName, productPrice, companyName, productQuantity);
-                $('#search').val(''); // Clear search input
-                $('#search-results').html(''); // Clear search results
+                $('#search').val('');
+                $('#search-results').html('');
                 $('#search-results').hide();
             });
 
-            // Function to add product to the cart and store in session
             function addToCart(id, name, price, companyName, quantity) {
                 let cart = JSON.parse(localStorage.getItem('cart')) || [];
                 let existingProduct = cart.find(item => item.id === id);
 
                 if (existingProduct) {
-                    // Check if adding one more would exceed stock
                     if (existingProduct.qty + 1 > quantity) {
                         showToast(`Cannot add more ${name} - Only ${quantity} in stock`, "error");
                         return;
                     }
-                    
                     existingProduct.qty += 1;
                     showToast(`Added another ${name} to cart`, "success");
                 } else {
-                    let newItem = {
-                        id,
-                        name,
-                        price,
-                        companyName,
-                        qty: 1,
-                        discount: 0,
-                        stockQuantity: quantity
-                    };
-                    cart.push(newItem);
+                    cart.push({
+                        id, name, price, companyName,
+                        qty: 1, discount: 0, stockQuantity: quantity
+                    });
                     showToast(`Added ${name} to cart`, "success");
                 }
 
                 localStorage.setItem('cart', JSON.stringify(cart));
                 renderCart();
 
-                // Auto-fetch historical discount only if a valid customer is selected
                 let customerId = $('#selected-customer-id').val();
                 if (customerId && customerId !== '' && !isNaN(customerId)) {
                     fetchItemDiscount(customerId, id);
                 }
             }
 
-            // Fetch last per-unit discount for a specific customer+product
             function fetchItemDiscount(customerId, productId) {
                 $.ajax({
                     url: "/sales/last-discount",
@@ -400,12 +357,10 @@
                 });
             }
 
-            // Batch-fetch discounts for ALL cart items in a single request
             function refreshCartDiscounts(customerId) {
                 let cart = JSON.parse(localStorage.getItem('cart')) || [];
                 if (cart.length === 0) return;
 
-                // Instantly zero out all discounts while loading
                 cart.forEach(item => { item.discount = 0; });
                 localStorage.setItem('cart', JSON.stringify(cart));
                 renderCart();
@@ -422,10 +377,7 @@
                         let changed = false;
                         cart.forEach(item => {
                             let d = parseFloat(discounts[item.id]) || 0;
-                            if (d !== item.discount) {
-                                item.discount = d;
-                                changed = true;
-                            }
+                            if (d !== item.discount) { item.discount = d; changed = true; }
                         });
                         if (changed) {
                             localStorage.setItem('cart', JSON.stringify(cart));
@@ -436,13 +388,11 @@
                 });
             }
 
-            // Function to load cart from session and display it
             function loadCartFromSession() {
                 let cart = JSON.parse(localStorage.getItem('cart')) || [];
                 renderCart(cart);
             }
 
-            // Function to render cart table from session data
             function renderCart() {
                 let cart = JSON.parse(localStorage.getItem('cart')) || [];
                 let cartTable = $('table tbody');
@@ -452,15 +402,14 @@
                     cartTable.html(`
                         <tr>
                             <td colspan="7" class="empty-cart">
-                                <i class="fas fa-shopping-cart"></i>
-                                <p>Your cart is empty</p>
-                                <p class="small text-muted">Search for products to add to your cart</p>
+                                <i class="fas fa-cart-shopping"></i>
+                                <p style="font-weight: 600; color: var(--text-secondary);">Your cart is empty</p>
+                                <p class="small">Search for products to start adding items</p>
                             </td>
                         </tr>
                     `);
                 } else {
                     cart.forEach((item, index) => {
-                        // Calculate item values with proper parsing
                         let itemQty = parseInt(item.qty) || 1;
                         let itemPrice = parseFloat(item.price) || 0;
                         let itemDiscount = parseFloat(item.discount || 0);
@@ -470,16 +419,12 @@
                         let itemTotalDiscount = itemDiscount * itemQty;
                         let itemTotal = itemSubtotal - itemTotalDiscount;
                         
-                        // Ensure positive total
                         if (itemTotal < 0) itemTotal = 0;
                         
-                        // For debugging
-                        console.log('Item:', item.name, 'Price:', itemPrice, 'Discount:', itemDiscount, 'Total:', itemTotal, 'Stock:', stockLimit);
-                        
                         let row = `
-                            <tr data-id="${item.id}" class="fade-in" style="animation-delay: ${index * 0.05}s">
-                                <td>${item.name}</td>
-                                <td>${item.companyName || 'N/A'}</td>
+                            <tr data-id="${item.id}" class="fade-in" style="animation-delay: ${index * 0.03}s">
+                                <td style="font-weight: 600;">${item.name}</td>
+                                <td style="color: var(--text-secondary); font-size: 0.85rem;">${item.companyName || 'N/A'}</td>
                                 <td class="text-center">
                                     <input type="number" 
                                         class="qty form-control form-control-sm mx-auto" 
@@ -487,20 +432,20 @@
                                         min="1" 
                                         max="${stockLimit}"
                                         data-stock="${stockLimit}" 
-                                        style="max-width: 70px;">
+                                        style="max-width: 64px; text-align: center;">
                                 </td>
-                                <td class="text-end price">Rs. ${itemPrice.toFixed(2)}</td>
+                                <td class="text-end" style="font-weight: 600;">Rs. ${itemPrice.toFixed(2)}</td>
                                 <td>
-                                    <div class="input-group input-group-sm">
+                                    <div class="input-group input-group-sm mx-auto" style="max-width: 120px;">
                                         <span class="input-group-text">Rs.</span>
                                         <input type="number" class="discount form-control form-control-sm" 
-                                            value="${itemDiscount}" min="0">
+                                            value="${itemDiscount}" min="0" step="0.01">
                                     </div>
                                 </td>
-                                <td class="text-end total">Rs. ${itemTotal.toFixed(2)}</td>
+                                <td class="text-end" style="font-weight: 700; color: var(--brand-start);">Rs. ${itemTotal.toFixed(2)}</td>
                                 <td class="text-center">
-                                    <button class="btn btn-danger btn-sm remove-btn" title="Remove" style="transition: all 0.3s ease; transform: none;">
-                                        <i class="ti ti-trash" style="filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.2));"></i>
+                                    <button class="remove-btn" title="Remove">
+                                        <i class="ti ti-trash"></i>
                                     </button>
                                 </td>
                             </tr>`;
@@ -511,60 +456,43 @@
                 updateTotals();
             }
 
-            // Update totals
             function updateTotals() {
                 let subTotal = 0;
                 let totalDiscount = 0;
-                let netTotal = 0;
 
                 let cart = JSON.parse(localStorage.getItem('cart')) || [];
                 
                 cart.forEach(item => {
                     let itemSubtotal = item.qty * item.price;
                     let itemDiscount = (item.discount || 0) * item.qty;
-                    
                     subTotal += itemSubtotal;
                     totalDiscount += itemDiscount;
                 });
 
-                // Apply customer discount percentage if set
                 const discountPercent = parseFloat($('#discount-percent').val()) || 0;
                 if (discountPercent > 0) {
                     totalDiscount = subTotal * (discountPercent / 100);
                 }
 
-                netTotal = subTotal - totalDiscount;
+                let netTotal = subTotal - totalDiscount;
 
-                // Animate the changing values
                 animateValue('#sub-total', subTotal);
                 animateValue('#discount', totalDiscount);
                 animateValue('#net-total', netTotal);
             }
             
-            // Function to animate changing values
             function animateValue(selector, newValue) {
                 const el = $(selector);
                 const oldValue = parseFloat(el.text().replace(/[^\d.-]/g, '')) || 0;
                 
-                // If the values are close, don't animate
                 if (Math.abs(newValue - oldValue) < 0.01) {
                     el.text(`Rs. ${newValue.toFixed(2)}`);
                     return;
                 }
                 
-                // Add highlight class for animation
-                el.addClass('text-primary');
-                
-                // Set new value
                 el.text(`Rs. ${newValue.toFixed(2)}`);
-                
-                // Remove highlight after a delay
-                setTimeout(() => {
-                    el.removeClass('text-primary');
-                }, 500);
             }
 
-            // Function to update session
             function updateSession(productId, qty, discount) {
                 let cart = JSON.parse(localStorage.getItem('cart')) || [];
                 let product = cart.find(item => item.id === productId);
@@ -572,106 +500,67 @@
                 if (product) {
                     product.qty = parseInt(qty) || 1;
                     product.discount = parseFloat(discount) || 0;
-                    
-                    // Show toast for quantity update
-                    showToast(`Updated ${product.name} quantity to ${qty}`, "info");
                 }
 
                 localStorage.setItem('cart', JSON.stringify(cart));
                 updateTotals();
             }
 
-            // Update quantity event listener
             $(document).on('change', '.qty', function() {
                 let row = $(this).closest('tr');
                 let productId = row.data('id');
                 let qty = parseInt($(this).val()) || 1;
-                
-                // Get the stock limit
                 let stockLimit = parseInt($(this).attr('data-stock')) || 0;
                 
-                // Enforce minimum quantity
-                if (qty < 1) {
-                    qty = 1;
-                    $(this).val(1);
-                    showToast("Quantity cannot be less than 1", "error");
-                }
+                if (qty < 1) { qty = 1; $(this).val(1); showToast("Quantity cannot be less than 1", "error"); }
+                if (qty > stockLimit) { qty = stockLimit; $(this).val(stockLimit); showToast(`Max available: ${stockLimit}`, "error"); }
                 
-                // Enforce stock limit
-                if (qty > stockLimit) {
-                    qty = stockLimit;
-                    $(this).val(stockLimit);
-                    showToast(`Maximum quantity available is ${stockLimit}`, "error");
-                }
-                
-                // Extract price value by removing the currency symbol
-                let priceText = row.find('.price').text().replace('Rs.', '').trim();
+                let priceText = row.find('td:eq(3)').text().replace('Rs.', '').trim();
                 let price = parseFloat(priceText) || 0;
-                
                 let discount = parseFloat(row.find('.discount').val()) || 0;
                 
-                let itemSubtotal = qty * price;
-                let itemTotalDiscount = discount * qty;
-                let itemTotal = itemSubtotal - itemTotalDiscount;
-                
-                row.find('.total').text(`Rs. ${itemTotal.toFixed(2)}`);
+                let itemTotal = (qty * price) - (discount * qty);
+                row.find('td:eq(5)').text(`Rs. ${Math.max(0, itemTotal).toFixed(2)}`);
                 updateSession(productId, qty, discount);
             });
 
-            // Update discount event listener
             $(document).on('change', '.discount', function() {
                 let row = $(this).closest('tr');
                 let productId = row.data('id');
                 let qty = parseInt(row.find('.qty').val()) || 1;
                 
-                // Extract price value by removing the currency symbol
-                let priceText = row.find('.price').text().replace('Rs.', '').trim();
+                let priceText = row.find('td:eq(3)').text().replace('Rs.', '').trim();
                 let price = parseFloat(priceText) || 0;
-                
                 let discount = parseFloat($(this).val()) || 0;
                 
-                let itemSubtotal = qty * price;
-                let itemTotalDiscount = discount * qty;
-                let itemTotal = itemSubtotal - itemTotalDiscount;
-                
-                row.find('.total').text(`Rs. ${itemTotal.toFixed(2)}`);
+                let itemTotal = (qty * price) - (discount * qty);
+                row.find('td:eq(5)').text(`Rs. ${Math.max(0, itemTotal).toFixed(2)}`);
                 updateSession(productId, qty, discount);
             });
 
-            // Customer discount percentage change event listener
             $(document).on('change', '#discount-percent', function() {
-                updateDiscountFromPercent();
+                updateTotals();
             });
 
-            // Function to remove an item from cart
             $(document).on('click', '.remove-btn', function() {
                 let productId = $(this).closest('tr').data('id');
                 let cart = JSON.parse(localStorage.getItem('cart')) || [];
-                
-                // Find the product name for toast notification
                 let productName = $(this).closest('tr').find('td:first-child').text();
                 
-                // Filter out the product with the matching ID
                 cart = cart.filter(item => item.id !== productId);
-
-                // Save updated cart back to storage
                 localStorage.setItem('cart', JSON.stringify(cart));
-                
-                // Show feedback
-                showToast(`Removed ${productName} from cart`, "info");
-                
-                // Update UI
+                showToast(`Removed ${productName}`, "info");
                 renderCart();
             });
 
             $.ajaxSetup({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-                    'Accept': 'application/json' // Ensure JSON response
+                    'Accept': 'application/json'
                 }
             });
 
-            // Checkout process
+            // Checkout
             $('#checkout-btn').on('click', function() {
                 let customerId = $('#selected-customer-id').val();
                 if (customerId === "") {
@@ -682,45 +571,35 @@
 
                 let cart = JSON.parse(localStorage.getItem('cart')) || [];
                 if (cart.length === 0) {
-                    showToast("Cart is empty. Please add products before checkout.", "error");
+                    showToast("Cart is empty. Add products before checkout.", "error");
                     $('#search').focus();
                     return;
                 }
 
                 let paidAmount = parseFloat($('#paid-amount').val()) || 0;
-                let subTotal = 0;
-                let totalDiscount = 0;
-                let netTotal = 0;
+                let subTotal = 0, totalDiscount = 0;
 
                 cart.forEach(item => {
-                    let itemSubtotal = item.qty * item.price;
-                    let itemDiscount = item.qty * (item.discount || 0);
-                    
-                    subTotal += itemSubtotal;
-                    totalDiscount += itemDiscount;
+                    subTotal += item.qty * item.price;
+                    totalDiscount += item.qty * (item.discount || 0);
                 });
 
-                // Apply customer discount percentage if set
                 const discountPercent = parseFloat($('#discount-percent').val()) || 0;
                 if (discountPercent > 0) {
                     totalDiscount = subTotal * (discountPercent / 100);
                 }
 
-                netTotal = subTotal - totalDiscount;
+                let netTotal = subTotal - totalDiscount;
 
-                // Show processing animation
                 $('#processing').html(`
-                    <div class="alert alert-info d-flex align-items-center">
-                        <div class="spinner-border spinner-border-sm me-3" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                        <div>Processing your sale...</div>
+                    <div style="background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.2); border-radius: 10px; padding: 14px 18px; display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                        <span style="font-weight: 500; color: var(--text-secondary); font-size: 0.9rem;">Processing your sale...</span>
                     </div>
                 `);
                 
-                // Disable checkout button
                 $('#checkout-btn').prop('disabled', true).html(`
-                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    <span class="spinner-border spinner-border-sm" role="status"></span>
                     Processing...
                 `);
 
@@ -739,81 +618,63 @@
                     },
                     success: function(response) {
                         localStorage.removeItem('cart');
+                        $('#processing').html('');
                         
-                        // Show success message with animated icons
-                        $('#processing').html(`
-                            <div class="alert alert-success border-0 shadow">
-                                <button type="button" class="btn-close position-absolute" style="top: 10px; right: 10px;" 
-                                    onclick="$('#processing').html('')"></button>
-                                <div class="text-center mb-3">
-                                    <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
-                                    <h4>Sale Completed Successfully!</h4>
-                                </div>
-                                <div class="row mt-4">
-                                    <div class="col-md-6">
-                                        <a href="${response.print_url}" target="_blank" class="btn btn-primary btn-action w-100">
-                                            <i class="fas fa-print me-2"></i> Print Invoice
+                        // Show success overlay
+                        const overlay = $(`
+                            <div class="sale-success-overlay">
+                                <div class="sale-success-card">
+                                    <div class="check-icon"><i class="fas fa-check"></i></div>
+                                    <h4>Sale Completed!</h4>
+                                    <p>Invoice has been saved successfully.</p>
+                                    <div class="sale-success-actions">
+                                        <a href="${response.print_url}" target="_blank" class="btn btn-print">
+                                            <i class="fas fa-print"></i> Print Invoice
                                         </a>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <a href="${response.invoice_url}" target="_blank" class="btn btn-secondary btn-action w-100">
-                                            <i class="fas fa-download me-2"></i> Download PDF
-                                        </a>
+                                        <button class="btn btn-close-success" onclick="$('.sale-success-overlay').remove();">
+                                            <i class="fas fa-xmark"></i> Close
+                                        </button>
                                     </div>
                                 </div>
                             </div>
                         `);
+                        $('body').append(overlay);
                         
-                        // Show toast
                         showToast("Sale completed successfully!", "success");
                         
-                        // Reset form
                         loadCartFromSession();
                         $('#customer-search').val("");
                         $('#selected-customer-id').val("");
                         $('#discount-percent').val('0.00');
                         $('#paid-amount').val("0.00");
                         
-                        // Re-enable checkout button
                         $('#checkout-btn').prop('disabled', false).html(`
-                            <i class="fas fa-check-circle me-2"></i>Complete Sale
+                            <i class="fas fa-check-circle"></i> Complete Sale
                         `);
                         
-                        // Refresh product data to show updated stock quantities
                         refreshProductData();
                     },
                     error: function(xhr) {
                         const errorMsg = xhr.responseJSON?.message || 'Error processing sale. Please try again.';
-                        $('#processing').html(`<div class="alert alert-danger">${errorMsg}</div>`);
-                        console.error("Error:", xhr.responseText);
+                        $('#processing').html(`<div style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 10px; padding: 14px 18px; color: var(--danger); font-weight: 500; font-size: 0.9rem;">${errorMsg}</div>`);
                         
-                        // Show toast
                         showToast(errorMsg, "error");
                         
-                        // Re-enable checkout button
                         $('#checkout-btn').prop('disabled', false).html(`
-                            <i class="fas fa-check-circle me-2"></i>Complete Sale
+                            <i class="fas fa-check-circle"></i> Complete Sale
                         `);
                         
-                        // Refresh product data
                         refreshProductData();
                     }
                 });
             });
 
-            // Clear products cache and reload when order is completed
             function refreshProductData() {
-                // Clear the cached products
                 allProducts = [];
-                
-                // Show loading message
-                showToast("Refreshing inventory data...", "info");
-                
-                // Fetch fresh data
                 fetchAllProducts();
             }
 
-            // Customer search functionality
+            // Customer search
             const customers = @json($customers);
             
             $('#customer-search').on('focus', function() {
@@ -825,19 +686,16 @@
                 $('#customer-dropdown').show();
             });
             
-            // Close dropdown when clicking outside
             $(document).on('click', function(e) {
                 if (!$(e.target).closest('.customer-select-container').length) {
                     $('#customer-dropdown').hide();
                 }
             });
             
-            // Customer search input handler
             $('#customer-search').on('input', function() {
                 const query = $(this).val().toLowerCase().trim();
                 
                 if (query.length === 0) {
-                    // Customer cleared — reset all item discounts to 0
                     $('#selected-customer-id').val('');
                     let cart = JSON.parse(localStorage.getItem('cart')) || [];
                     let changed = false;
@@ -856,42 +714,32 @@
                 $('#customer-dropdown').show();
             });
             
-            // Populate all customers
             function populateAllCustomers() {
                 let html = '';
-                
                 if (customers.length === 0) {
-                    html = '<div class="p-3 text-center text-muted">No customers found</div>';
+                    html = '<div class="p-3 text-center text-muted small">No customers found</div>';
                 } else {
-                    customers.forEach(customer => {
-                        html += createCustomerItem(customer);
-                    });
+                    customers.forEach(customer => { html += createCustomerItem(customer); });
                 }
-                
                 $('#customer-dropdown').html(html);
             }
             
-            // Filter customers based on query
             function filterCustomers(query) {
                 query = query.toLowerCase();
-                let html = '';
                 let filteredCustomers = customers.filter(c => 
                     c.name.toLowerCase().includes(query) || 
                     (c.phone_no && c.phone_no.includes(query))
                 );
                 
+                let html = '';
                 if (filteredCustomers.length === 0) {
-                    html = '<div class="p-3 text-center text-muted">No matching customers found</div>';
+                    html = '<div class="p-3 text-center text-muted small">No matching customers</div>';
                 } else {
-                    filteredCustomers.forEach(customer => {
-                        html += createCustomerItem(customer);
-                    });
+                    filteredCustomers.forEach(customer => { html += createCustomerItem(customer); });
                 }
-                
                 $('#customer-dropdown').html(html);
             }
             
-            // Create customer item HTML
             function createCustomerItem(customer) {
                 return `
                     <div class="customer-item" data-id="${customer.id}">
@@ -901,70 +749,35 @@
                 `;
             }
             
-            // Customer selection
-                        $(document).on('click', '.customer-item', function() {
-                            const customerId = $(this).data('id');
-                            const customerName = $(this).find('.customer-name').text();
+            $(document).on('click', '.customer-item', function() {
+                const customerId = $(this).data('id');
+                const customerName = $(this).find('.customer-name').text();
 
-                            $('#selected-customer-id').val(customerId);
-                            $('#customer-search').val(customerName);
-                            $('#customer-dropdown').hide();
+                $('#selected-customer-id').val(customerId);
+                $('#customer-search').val(customerName);
+                $('#customer-dropdown').hide();
 
-                            showToast(`Selected customer: ${customerName}`, "success");
+                showToast(`Customer: ${customerName}`, "success");
+                fetchCustomerDiscount(customerId);
+                refreshCartDiscounts(customerId);
+            });
 
-                            // Fetch customer discount and apply it
-                            fetchCustomerDiscount(customerId);
-
-                            // Re-evaluate per-item discounts from history for this customer
-                            refreshCartDiscounts(customerId);
-                        });
-
-                        // Fetch customer discount from server
-                        function fetchCustomerDiscount(customerId) {
-                            $.ajax({
-                                url: "/customers/discount",
-                                type: "GET",
-                                data: { customer_id: customerId },
-                                success: function(response) {
-                                    const discountPercent = parseFloat(response.discount) || 0;
-                                    $('#discount-percent').val(discountPercent.toFixed(2));
-                                    updateDiscountFromPercent();
-                                },
-                                error: function(xhr) {
-                                    console.error("Error fetching customer discount:", xhr.responseText);
-                                    $('#discount-percent').val('0.00');
-                                    updateDiscountFromPercent();
-                                }
-                            });
-                        }
-
-                        // Update discount amount from percentage
-                        function updateDiscountFromPercent() {
-                            let subTotal = 0;
-                            let cart = JSON.parse(localStorage.getItem('cart')) || [];
-                
-                            cart.forEach(item => {
-                                let itemSubtotal = item.qty * item.price;
-                                subTotal += itemSubtotal;
-                            });
-
-                            const discountPercent = parseFloat($('#discount-percent').val()) || 0;
-                            const totalDiscount = subTotal * (discountPercent / 100);
-
-                            $('#discount').text(`Rs. ${totalDiscount.toFixed(2)}`);
-                            updateNetTotal();
-                        }
-
-                        // Update net total based on subtotal and discount
-                        function updateNetTotal() {
-                            const subTotalText = $('#sub-total').text().replace('Rs.', '').trim();
-                            const discountText = $('#discount').text().replace('Rs.', '').trim();
-                            const subTotal = parseFloat(subTotalText) || 0;
-                            const discount = parseFloat(discountText) || 0;
-                            const netTotal = subTotal - discount;
-                
-                            $('#net-total').html(`<b>Rs. ${netTotal.toFixed(2)}</b>`);
-                        }
+            function fetchCustomerDiscount(customerId) {
+                $.ajax({
+                    url: "/customers/discount",
+                    type: "GET",
+                    data: { customer_id: customerId },
+                    success: function(response) {
+                        const discountPercent = parseFloat(response.discount) || 0;
+                        $('#discount-percent').val(discountPercent.toFixed(2));
+                        updateTotals();
+                    },
+                    error: function(xhr) {
+                        $('#discount-percent').val('0.00');
+                        updateTotals();
+                    }
+                });
+            }
         });
     </script>
 @endsection

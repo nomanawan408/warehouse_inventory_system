@@ -175,16 +175,26 @@ class SalesController extends Controller
         }
 
         // PDF: plain stdClass rows (no Eloquent hydration) to keep memory flat.
+        // dompdf builds the whole document tree in memory (~0.3 MB/row here),
+        // so the PDF is capped to the most recent rows (measured safe at 128M);
+        // CSV remains the full-data export.
+        $pdfLimit = 150;
+        $pdfCountQuery = $this->filteredSalesQuery($filter, $search);
+        $pdfTotal = (clone $pdfCountQuery)->count();
         $rows = $this->filteredSalesQuery($filter, $search)
             ->leftJoin('customers', 'customers.id', '=', 'sales.customer_id')
             ->select('sales.id', 'sales.total_amount', 'sales.discount', 'sales.net_total', 'sales.amount_paid', 'sales.pending_amount', 'sales.updated_at', 'customers.name as customer_name')
             ->orderBy('sales.updated_at', 'desc')
+            ->take($pdfLimit)
             ->get();
 
         $pdf = Pdf::loadView('dashboard.sales.export_pdf', [
             'rows' => $rows,
             'filter' => $filter,
             'generatedAt' => now()->format('d M Y, h:i A'),
+            'capped' => $pdfTotal > $pdfLimit,
+            'totalCount' => $pdfTotal,
+            'limit' => $pdfLimit,
         ])->setPaper('a4', 'landscape');
 
         return $pdf->download("{$filename}.pdf");
